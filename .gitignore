@@ -1,0 +1,3 @@
+build/
+.lock-wscript
+gphoto2.node
