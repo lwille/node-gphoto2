@@ -4,6 +4,7 @@ A Node.js wrapper for libgphoto2
 * Node.js ~0.6.5
 * NPM ~1.1.0
 * libgphoto2 ~2.4.11
+
 ## Installation
     git clone git@github.com:lwille/node-gphoto2.git
     cd node-gphoto2
