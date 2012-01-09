@@ -11,6 +11,11 @@
   "engines": {
     "node": "~0.6.5"
   },
+  "main": "gphoto2.node",
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "scripts": {
+    "preinstall": "node-waf clean || (exit 0); node-waf configure build",
+    "test": "node test.js"
+  }
 }
