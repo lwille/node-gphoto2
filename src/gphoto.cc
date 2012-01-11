@@ -11,6 +11,10 @@ GPhoto2::GPhoto2() : portinfolist_(NULL), abilities_(NULL) {
   gp_camera_new (&this->_camera);
 }
 
+GPhoto2::~GPhoto2(){
+  printf("GPhoto2 destructor\n");
+}
+
 void GPhoto2::Initialize(Handle<Object> target) {
   
   HandleScope scope;
@@ -49,15 +53,14 @@ Handle<Value> GPhoto2::List(const Arguments &args){
     GPhoto2 *gphoto = ObjectWrap::Unwrap<GPhoto2>(args.This());
     
     TryCatch try_catch;
-      Local<Object> This = args.This();
-      list_request *list_req = (list_request *)malloc(sizeof(list_request));
-      list_req->cb = Persistent<Function>::New(cb);
-      list_req->list = NULL;
-      list_req->gphoto = gphoto;
-      
-      eio_custom(EIO_List, EIO_PRI_DEFAULT, EIO_ListAfter, list_req);
-      ev_ref(EV_DEFAULT_UC);
-      gphoto->Ref();
+    list_request *list_req = (list_request *)malloc(sizeof(list_request));
+    list_req->cb = Persistent<Function>::New(cb);
+    list_req->list = NULL;
+    list_req->gphoto = gphoto;
+    
+    eio_custom(EIO_List, EIO_PRI_DEFAULT, EIO_ListCb, list_req);
+    ev_ref(EV_DEFAULT_UC);
+    gphoto->Ref();
     return Undefined();
 }
 
@@ -66,8 +69,8 @@ void GPhoto2::EIO_List(eio_req *req){
     int i, ret;
     list_request *list_req = (list_request *)req->data;
     GPhoto2 *gphoto = list_req->gphoto;
-    GPPortInfoList *portInfoList;
-    CameraAbilitiesList *abilitiesList;
+    GPPortInfoList *portInfoList = gphoto->getPortInfoList();
+    CameraAbilitiesList *abilitiesList = gphoto->getAbilitiesList();
     gp_list_new(&list_req->list);
     
     ret = autodetect(list_req->list,  gphoto->getContext(), &portInfoList, &abilitiesList);
@@ -76,7 +79,7 @@ void GPhoto2::EIO_List(eio_req *req){
     gphoto->setAbilitiesList(abilitiesList);
     gphoto->setPortInfoList(portInfoList);
 }
-int  GPhoto2::EIO_ListAfter(eio_req *req){
+int  GPhoto2::EIO_ListCb(eio_req *req){
 
     HandleScope scope;
     int i;
@@ -96,7 +99,6 @@ int  GPhoto2::EIO_ListAfter(eio_req *req){
    		
       Local<Value> constructor_args[3];
       
-      GPCamera *cam = new GPCamera(list_req->gphoto, name_, port_);
       constructor_args[0] = External::New(list_req->gphoto);
       constructor_args[1] = String::New(name_);
       constructor_args[2] = String::New(port_);
@@ -119,6 +121,14 @@ int  GPhoto2::EIO_ListAfter(eio_req *req){
     gp_list_free(list_req->list);    
     free(list_req);
     return 0;
+}
+
+int GPhoto2::openCamera(GPCamera *p){
+  printf("Opening camera %d context=%p\n", __LINE__, this->context_);
+  Camera *camera;
+  int ret = open_camera(&camera, p->getModel(), p->getPort(), this->portinfolist_, this->abilities_);
+  p->setCamera(camera);
+  return ret;
 }
 
 static void onError (GPContext *context, const char *format, va_list args, void *data) {

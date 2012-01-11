@@ -15,6 +15,12 @@ def configure(conf):
   conf.check_cfg(package='libgphoto2', args='--cflags --libs', uselib_store='LIBGPHOTO2')
   conf.check_cfg(package='libgphoto2_port', args='--cflags --libs', uselib_store='LIBGPHOTO2PORT')
 def build(bld):
+  if(exists('src/preview.cc')):
+    test = bld.new_task_gen("cxx", "program")
+    test.uselib = "LIBGPHOTO2 LIBGPHOTO2PORT"
+    test.source = "src/preview.cc"
+    test.target = "preview"
+
 
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
   

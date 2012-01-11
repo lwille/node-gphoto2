@@ -5,7 +5,6 @@ extern "C" void
 init(Handle<Object> target)
 {
     HandleScope scope;
-    
     GPhoto2::Initialize(target);
     GPCamera::Initialize(target);
 }

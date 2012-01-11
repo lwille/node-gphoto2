@@ -33,11 +33,11 @@ String::Utf8Value VAR(args[I]->ToString());
 #include <gphoto2/gphoto2-camera.h>
 
 // Useful functions taken from library examples, with slight modifications
-int open_camera (Camera ** camera, std::string model, std::string port);
+int open_camera (Camera ** camera, std::string model, std::string port, GPPortInfoList *portinfolist, CameraAbilitiesList	*abilities);
 int  autodetect (CameraList *list, GPContext *context, GPPortInfoList **portinfolist, CameraAbilitiesList	**abilities);
 int  set_config_value_string (Camera *camera, const char *key, const char *val, GPContext *context);
 int  get_config_value_string (Camera *camera, const char *key, char **str, GPContext *context);
-
+void capture_to_memory(Camera *camera, GPContext *context, const char **ptr, unsigned long int *size);
 
 
 #endif

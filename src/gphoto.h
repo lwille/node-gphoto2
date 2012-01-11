@@ -5,9 +5,9 @@
 #include <node.h>
 #include <node_buffer.h>
 #include <string.h>
-
 using namespace v8;
 
+class GPCamera;
 static Persistent<String> gphoto_test_symbol;
 static Persistent<String> gphoto_list_symbol;
 class GPhoto2: public node::ObjectWrap {  
@@ -21,11 +21,12 @@ class GPhoto2: public node::ObjectWrap {
       CameraList	        *list;    	
   };
   static void EIO_List(eio_req *req);
-  static int EIO_ListAfter(eio_req *req);  
+  static int EIO_ListCb(eio_req *req);  
   public:
     static Persistent<FunctionTemplate> constructor_template;
     Camera * _camera;
     GPhoto2();
+    ~GPhoto2();
     static void Initialize(Handle<Object> target);
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> List(const Arguments &args);
@@ -33,11 +34,11 @@ class GPhoto2: public node::ObjectWrap {
     GPContext *getContext(){return this->context_;};
 
     GPPortInfoList *getPortInfoList(){return this->portinfolist_;};
-    void setPortInfoList(GPPortInfoList *p){this->portinfolist_=p;};
+    void setPortInfoList(GPPortInfoList *p){printf("Setting portinfolist_ to %p\n",p);this->portinfolist_=p;};
 
     CameraAbilitiesList *getAbilitiesList(){return this->abilities_;};
-    void setAbilitiesList(CameraAbilitiesList *p){this->abilities_=p;};
-
+    void setAbilitiesList(CameraAbilitiesList *p){printf("Setting abilities_ to %p\n",p);this->abilities_=p;};
+    int openCamera(GPCamera *camera);
     
 };
 

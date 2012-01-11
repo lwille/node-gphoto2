@@ -62,38 +62,48 @@ open_camera (Camera ** camera, std::string model, std::string port, GPPortInfoLi
 	int		ret, m, p;
 	CameraAbilities	a;
 	GPPortInfo	pi;
-
+  printf("Opening camera using %p\n", camera);
 	ret = gp_camera_new (camera);
+  printf("Created new camera handle %d, %p\n", ret, *camera);
 	if (ret < GP_OK) return ret;
 
 	/* First lookup the model / driver */
-        m = gp_abilities_list_lookup_model (abilities, model.c_str());
+  m = gp_abilities_list_lookup_model (abilities, model.c_str());
+  printf("looked up model %d\n", m);
 	if (m < GP_OK) return ret;
-        ret = gp_abilities_list_get_abilities (abilities, m, &a);
+  ret = gp_abilities_list_get_abilities (abilities, m, &a);
+  printf("looked up abilities %d\n", ret);
 	if (ret < GP_OK) return ret;
-        ret = gp_camera_set_abilities (*camera, a);
+  ret = gp_camera_set_abilities (*camera, a);
+  printf("set abilities %d\n", ret);
+
 	if (ret < GP_OK) return ret;
 
 	/* Then associate the camera with the specified port */
-        p = gp_port_info_list_lookup_path (portinfolist, port.c_str());
-        if (ret < GP_OK) return ret;
-        switch (p) {
-        case GP_ERROR_UNKNOWN_PORT:
-                fprintf (stderr, "The port you specified "
-                        "('%s') can not be found. Please "
-                        "specify one of the ports found by "
-                        "'gphoto2 --list-ports' and make "
-                        "sure the spelling is correct "
-                        "(i.e. with prefix 'serial:' or 'usb:').",
-                                port.c_str());
-                break;
-        default:
-                break;
-        }
-        if (ret < GP_OK) return ret;
-        ret = gp_port_info_list_get_info (portinfolist, p, &pi);
-        if (ret < GP_OK) return ret;
-        ret = gp_camera_set_port_info (*camera, pi);
-        if (ret < GP_OK) return ret;
+  p = gp_port_info_list_lookup_path (portinfolist, port.c_str());
+  if (ret < GP_OK) return ret;
+  switch (p) {
+  case GP_ERROR_UNKNOWN_PORT:
+          fprintf (stderr, "The port you specified "
+                  "('%s') can not be found. Please "
+                  "specify one of the ports found by "
+                  "'gphoto2 --list-ports' and make "
+                  "sure the spelling is correct "
+                  "(i.e. with prefix 'serial:' or 'usb:').",
+                          port.c_str());
+          break;
+  default:
+          break;
+  }
+  if (ret < GP_OK) return ret;
+  ret = gp_port_info_list_get_info (portinfolist, p, &pi);
+  printf("port_info_list_get_info %d\n", ret);
+  if (ret < GP_OK) return ret;
+  ret = gp_camera_set_port_info (*camera, pi);
+  printf("gp_camera_set_port_info %d\n", ret);
+  
+  if (ret < GP_OK) return ret;
+  printf("open_camera finished %d\n", ret);
+
 	return GP_OK;
 }
