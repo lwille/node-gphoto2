@@ -19,7 +19,6 @@ Of course you can also add node-gphoto2 to your project's package.json and run `
     GPhoto.list(function(list){console.log(list[0].model)});
     
     // Take picture with camera object obtained from list()
-    emitter = camera.takePicture()
-    emitter.on('data', function(data){});
-    emitter.on('end', function(){});
-    emitter.on('error', function(error){});
+    camera.takePicture(function(data){
+      fs.writeFile("picture.jpg", data);
+    })
