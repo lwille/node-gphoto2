@@ -22,3 +22,8 @@ Of course you can also add node-gphoto2 to your project's package.json and run `
     camera.takePicture(function(data){
       fs.writeFile("picture.jpg", data);
     })
+    
+    // Get preview picture (from AF Sensor, fails silently if unsupported)
+    camera.getPreview(function(data){
+      fs.writeFile("picture.jpg", data);
+    })
