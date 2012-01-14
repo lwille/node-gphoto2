@@ -1,7 +1,8 @@
 #ifndef __BINDING_H
 #define __BINDING_H
 
-
+#define MALLOC_STRUCT(VAR, STRUCT) \
+STRUCT *VAR = (STRUCT*)malloc(sizeof(STRUCT));
 #define ADD_PROTOTYPE_METHOD(class, name, method) \
 class ## _ ## name ## _symbol = NODE_PSYMBOL(#name); \
 NODE_SET_PROTOTYPE_METHOD(constructor_template, #name, method);

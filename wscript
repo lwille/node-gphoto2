@@ -36,6 +36,6 @@ def shutdown(bld):
     if lexists('gphoto2.node'):
       unlink('gphoto2.node')
   elif Options.commands['build']:
-    system('coffee -c test.coffee')
+    system('coffee -c test/test.coffee')
     if exists('build/Release/gphoto2.node') and not lexists('gphoto2.node'):
       symlink('build/Release/gphoto2.node', 'gphoto2.node')
