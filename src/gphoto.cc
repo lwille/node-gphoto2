@@ -53,7 +53,7 @@ Handle<Value> GPhoto2::List(const Arguments &args){
     GPhoto2 *gphoto = ObjectWrap::Unwrap<GPhoto2>(args.This());
     
     TryCatch try_catch;
-    list_request *list_req = (list_request *)malloc(sizeof(list_request));
+    MALLOC_STRUCT(list_req, list_request);
     list_req->cb = Persistent<Function>::New(cb);
     list_req->list = NULL;
     list_req->gphoto = gphoto;
@@ -124,6 +124,7 @@ int  GPhoto2::EIO_ListCb(eio_req *req){
 }
 
 int GPhoto2::openCamera(GPCamera *p){
+  this->Ref();
   printf("Opening camera %d context=%p\n", __LINE__, this->context_);
   Camera *camera;
   int ret = open_camera(&camera, p->getModel(), p->getPort(), this->portinfolist_, this->abilities_);
@@ -131,6 +132,13 @@ int GPhoto2::openCamera(GPCamera *p){
   return ret;
 }
 
+int GPhoto2::closeCamera(GPCamera *p){
+  this->Unref();
+  printf("Closing camera %s", p->getModel().c_str());
+  return 0;
+}
+
+#ifdef OLDLIB
 static void onError (GPContext *context, const char *format, va_list args, void *data) {
     fprintf  (stdout, "\n");
     fprintf  (stdout, "*** Contexterror ***              \n");
@@ -143,3 +151,14 @@ static void onStatus (GPContext *context, const char *format, va_list args, void
     fprintf  (stdout, "\n");
     fflush   (stdout);
 }
+#else
+void
+onError (GPContext *context, const char *str, void *data)
+{
+	printf ("### %s\n", str);
+}
+
+static void onStatus (GPContext *context, const char *str, void *data) {
+	printf ("### %s\n", str);
+}
+#endif

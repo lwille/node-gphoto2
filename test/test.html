@@ -1,0 +1,18 @@
+<html>
+<body>
+  <img id="img">
+  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+  <script type="text/javascript" charset="utf-8">
+    google.load('jquery', '1.7.1');
+    google.setOnLoadCallback(function(){
+      $(function(){
+        var img = $('#img');
+        img.load(function(){
+          img.attr('src','/preview?'+Date.parse(new Date()));
+        });
+        img.attr('src','/preview');
+      })
+    });    
+  </script>
+</body>
+</html>

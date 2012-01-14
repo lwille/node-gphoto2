@@ -6,7 +6,7 @@
 #include <node_buffer.h>
 #include <string.h>
 using namespace v8;
-
+#define OLDLIB
 class GPCamera;
 static Persistent<String> gphoto_test_symbol;
 static Persistent<String> gphoto_list_symbol;
@@ -39,10 +39,14 @@ class GPhoto2: public node::ObjectWrap {
     CameraAbilitiesList *getAbilitiesList(){return this->abilities_;};
     void setAbilitiesList(CameraAbilitiesList *p){printf("Setting abilities_ to %p\n",p);this->abilities_=p;};
     int openCamera(GPCamera *camera);
+    int closeCamera(GPCamera *camera);
     
 };
-
-static void onError (GPContext *context, const char *format, va_list args, void *data);
-static void onStatus (GPContext *context, const char *format, va_list args, void *data);
-
+#ifdef OLDLIB
+static void onError (GPContext *context, const char *str, va_list args, void *unused);
+static void onStatus (GPContext *context, const char *str,va_list args, void *unused);
+#else
+static void onError (GPContext *context, const char *str, void *unused);
+static void onStatus (GPContext *context, const char *str, void *unused);
+#endif
 #endif

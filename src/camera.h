@@ -18,20 +18,23 @@
     Persistent<External> gphoto;
     GPhoto2    *gphoto_;
     Camera     *camera_;
-
+  	CameraWidget *config_;
     bool isOpen(){return this->camera_ ? true : false;};
     
     struct take_picture_request {
       Persistent<Function> cb;
       Camera *camera;
+      GPCamera *cameraObject;
       GPContext *context;
       const char *data;
-      size_t length;      
+      size_t length;
+      int ret;  
     };
     struct get_config_request {
       Persistent<Function> cb;
       GPCamera *camera;
       std::string key;
+      int ret;
     };
     struct set_config_request {
       Persistent<Function> cb;
@@ -39,6 +42,7 @@
       std::string key;
       std::string strValue;
       int intValue;
+      int ret;
     };
 
     bool close();
@@ -49,10 +53,13 @@
       ~GPCamera();
       static void Initialize(Handle<Object> target);
       static Handle<Value> New(const Arguments& args);
+      static Handle<Value> GetConfig(const Arguments& args);
       static Handle<Value> GetConfigValue(const Arguments &args);
       static Handle<Value> SetConfigValue(const Arguments &args);
       static Handle<Value> TakePicture(const Arguments &args);
       static Handle<Value> GetPreview(const Arguments& args);
+      static void EIO_GetConfig(eio_req *req);
+      static int EIO_GetConfigCb(eio_req *req);
       static void EIO_GetConfigValue(eio_req *req);
       static int  EIO_GetConfigValueCb(eio_req *req);
       static void EIO_SetConfigValue(eio_req *req);
