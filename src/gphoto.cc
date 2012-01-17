@@ -44,6 +44,7 @@ Handle<Value> GPhoto2::New(const Arguments &args) {
 
 Handle<Value> GPhoto2::Test(const Arguments &args){
   printf("(Test)Everything is fine\n");
+  return Undefined();
 }
 
 Handle<Value> GPhoto2::List(const Arguments &args){
@@ -139,14 +140,14 @@ int GPhoto2::closeCamera(GPCamera *p){
 }
 
 #ifdef OLDLIB
-static void onError (GPContext *context, const char *format, va_list args, void *data) {
+void onError (GPContext *context, const char *format, va_list args, void *data) {
     fprintf  (stdout, "\n");
     fprintf  (stdout, "*** Contexterror ***              \n");
     vfprintf (stdout, format, args);
     fprintf  (stdout, "\n");
     fflush   (stdout);
 }
-static void onStatus (GPContext *context, const char *format, va_list args, void *data) {
+void onStatus (GPContext *context, const char *format, va_list args, void *data) {
     vfprintf (stdout, format, args);
     fprintf  (stdout, "\n");
     fflush   (stdout);
