@@ -7,7 +7,7 @@ using namespace node;
 
 Persistent<FunctionTemplate> GPCamera::constructor_template;
 
-GPCamera::GPCamera(Handle<External> js_gphoto, std::string model, std::string port) : model_(model), port_(port), camera_(NULL), config_(NULL), ObjectWrap(){
+GPCamera::GPCamera(Handle<External> js_gphoto, std::string model, std::string port) : ObjectWrap(), model_(model), port_(port), camera_(NULL), config_(NULL){
   HandleScope scope;
   GPhoto2 *gphoto = static_cast<GPhoto2*>(js_gphoto->Value());
   this->gphoto = Persistent<External>::New(js_gphoto);
@@ -130,6 +130,7 @@ GPCamera::EIO_GetConfigValueCb(eio_req *req){
   get_config_request *config_req = (get_config_request *)req->data;
   config_req->camera->Unref();
   free(config_req);
+  return 0;
 }
 
 Handle<Value>
@@ -226,12 +227,12 @@ int GPCamera::EIO_CapturePreviewCb(eio_req *req){
   if(preview_req->ret < GP_OK){
     argv[0] = Integer::New(preview_req->ret);
   }
-  else {
+  else if(preview_req->data) {
     argc = 2;
     argv[0] = Undefined();
     node::Buffer* slowBuffer = node::Buffer::New(preview_req->length);
     memcpy(Buffer::Data(slowBuffer), preview_req->data, preview_req->length);
-    Local<Object> globalObj = v8::Context::GetCurrent()->Global();
+    Local<Object> globalObj = Context::GetCurrent()->Global();
     Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(v8::String::New("Buffer")));
     Handle<Value> constructorArgs[3] = { slowBuffer->handle_, v8::Integer::New(preview_req->length), v8::Integer::New(0) };
     Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
