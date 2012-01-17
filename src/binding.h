@@ -27,6 +27,16 @@ String::New("Argument " #I " must be a string"))); \
 String::Utf8Value VAR(args[I]->ToString());
 
 
+#define RETURN_ON_ERROR(REQ, FNAME, ARGS, CLEANUP)\
+REQ->ret = FNAME ARGS;\
+if(REQ->ret < GP_OK){\
+  printf(#FNAME"=%d\n", REQ->ret);\
+  CLEANUP;\
+  return;\
+}
+
+
+
 #define V8STR(str) String::New(str)
 #define V8STR2(str, len) String::New(str, len)
 
