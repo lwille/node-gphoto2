@@ -10,10 +10,13 @@ def set_options(opt):
   opt.tool_options("compiler_cxx")
 
 def configure(conf):
+  conf.env.CXX = 'clang'
   conf.check_tool("compiler_cxx")
   conf.check_tool("node_addon")
   conf.check_cfg(package='libgphoto2', args='--cflags --libs', uselib_store='LIBGPHOTO2')
   conf.check_cfg(package='libgphoto2_port', args='--cflags --libs', uselib_store='LIBGPHOTO2PORT')
+  conf.env.append_value('CXXFLAGS', ['-Wall', '-Wno-unused-variable', '-Qunused-arguments'])
+
 def build(bld):
   if(exists('src/preview.cc')):
     test = bld.new_task_gen("cxx", "program")
