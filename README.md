@@ -1,5 +1,11 @@
 # node-gphoto2
-A Node.js wrapper for libgphoto2
+A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote controlling of DSLRs and other digital cameras supported by [gphoto2](http://www.gphoto.org).
+
+The included test application currently allows you to
+
+* receive a live preview of your camera (if supported). Tested on a 2010 iMac at ~17 fps.
+
+The test application can be started using ``npm test`` and runs on http://localhost:1337.
 
 ## Prerequisites
 * Node.js ~0.6.5
@@ -11,6 +17,7 @@ A Node.js wrapper for libgphoto2
     cd node-gphoto2
     npm i -l
 Of course you can also add node-gphoto2 to your project's package.json and run ``npm i -l``.
+
 ## Usage
     gp = require('node-gphoto2');
     GPhoto = new gp.GPhoto2();
