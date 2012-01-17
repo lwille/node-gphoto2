@@ -43,10 +43,10 @@ class GPhoto2: public node::ObjectWrap {
     
 };
 #ifdef OLDLIB
-static void onError (GPContext *context, const char *str, va_list args, void *unused);
-static void onStatus (GPContext *context, const char *str,va_list args, void *unused);
+extern void onError(GPContext *context, const char *str, va_list args, void *unused);
+extern void onStatus(GPContext *context, const char *str,va_list args, void *unused);
 #else
-static void onError (GPContext *context, const char *str, void *unused);
-static void onStatus (GPContext *context, const char *str, void *unused);
+static void onError(GPContext *context, const char *str, void *unused);
+static void onStatus(GPContext *context, const char *str, void *unused);
 #endif
 #endif
