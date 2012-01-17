@@ -6,8 +6,11 @@
   #include <node_buffer.h>
   #include <string>
   #include "gphoto.h"
+  #include <deque>
+  
   using namespace v8;
-
+  
+  static Persistent<String> camera_getConfig_symbol;
   static Persistent<String> camera_getConfigValue_symbol;
   static Persistent<String> camera_setConfigValue_symbol;
   static Persistent<String> camera_takePicture_symbol;
@@ -33,9 +36,12 @@
     };
     struct get_config_request {
       Persistent<Function> cb;
-      GPCamera *camera;
+      GPCamera  *cameraObject;
+      Camera    *camera;
+      GPContext *context;
       std::string key;
       int ret;
+      std::deque<std::string> settings;
     };
     struct set_config_request {
       Persistent<Function> cb;
@@ -45,7 +51,7 @@
       int intValue;
       int ret;
     };
-
+    static int enumConfig(get_config_request* req, CameraWidget *root, std::string path);
     bool close();
     
     public:

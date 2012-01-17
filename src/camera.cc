@@ -1,6 +1,8 @@
 #include "binding.h"
 #include "camera.h"
 #include <node_buffer.h>
+#include <sstream>
+#include <gphoto2/gphoto2-widget.h>
 using namespace v8;
 using namespace node;
 
@@ -32,6 +34,7 @@ GPCamera::Initialize(Handle<Object> target) {
     constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
     constructor_template->SetClassName(String::NewSymbol("Camera"));
 
+    ADD_PROTOTYPE_METHOD(camera, getConfig, GetConfig);
     ADD_PROTOTYPE_METHOD(camera, getConfigValue, GetConfigValue);
     ADD_PROTOTYPE_METHOD(camera, setConfigValue, SetConfigValue);
     ADD_PROTOTYPE_METHOD(camera, takePicture, TakePicture);
@@ -45,7 +48,7 @@ GPCamera::TakePicture(const Arguments& args) {
   printf("TakePicture %d\n", __LINE__);
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   REQ_FUN_ARG(0, cb);
-  MALLOC_STRUCT(picture_req, take_picture_request);
+  take_picture_request *picture_req = new take_picture_request();
   picture_req->cb = Persistent<Function>::New(cb);
   picture_req->camera = camera->getCamera();
   picture_req->context = camera->gphoto_->getContext();
@@ -62,6 +65,7 @@ GPCamera::EIO_TakePicture(eio_req *req){
 int
 GPCamera::EIO_TakePictureCb(eio_req *req){
   HandleScope scope;
+  ev_unref(EV_DEFAULT_UC);
   take_picture_request *picture_req = (take_picture_request *)req->data;
   
   node::Buffer* buffer = node::Buffer::New((char*)picture_req->data, picture_req->length);
@@ -72,7 +76,7 @@ GPCamera::EIO_TakePictureCb(eio_req *req){
   picture_req->cb->Call(Context::GetCurrent()->Global(), 1, argv);
   
   picture_req->cb.Dispose();
-  free(picture_req);
+  delete picture_req;
   return 0;
 }
 
@@ -86,25 +90,77 @@ GPCamera::GetConfig(const Arguments& args) {
   REQ_FUN_ARG(0, cb)
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
-  MALLOC_STRUCT(config_req, get_config_request);
-  config_req->camera = camera;
+  get_config_request *config_req = new get_config_request();
+  config_req->cameraObject = camera;
+  config_req->camera = camera->getCamera();
+  config_req->context = camera->gphoto_->getContext();
   config_req->cb = Persistent<Function>::New(cb);
   eio_custom(EIO_GetConfig, EIO_PRI_DEFAULT, EIO_GetConfigCb, config_req);
   ev_ref(EV_DEFAULT_UC);
   return Undefined();  
 }
+
+int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, std::string prefix){
+  int ret,n,i;
+  std::ostringstream newprefix;
+  char* label, *name, *uselabel;
+	CameraWidgetType	type;
+  gp_widget_get_label (root,(const char**)&label);
+  ret = gp_widget_get_name (root, (const char**)&name);
+	gp_widget_get_type (root, &type);
+	if (std::string((const char*)name).length())
+		uselabel = name;
+	else
+		uselabel = label;
+	n = gp_widget_count_children(root);
+	newprefix << prefix << "/" << uselabel;
+	if ((type != GP_WIDGET_WINDOW) && (type != GP_WIDGET_SECTION)){
+    req->settings.push_back(newprefix.str());
+	}
+	for (i=0; i<n; i++) {
+		CameraWidget *child;
+	
+		ret = gp_widget_get_child(root, i, &child);
+		if (ret != GP_OK)
+			continue;
+		enumConfig(req, child, newprefix.str());
+	}
+  return GP_OK;  
+}
+
 void GPCamera::EIO_GetConfig(eio_req *req){
   get_config_request *config_req = (get_config_request*)req->data;
-  
-	//config_req->ret = gp_camera_get_config (p->camera, &rootconfig, p->context);
-  
+  CameraWidget *config;
+  int ret;
+  ret = gp_camera_get_config(config_req->camera, &config, config_req->context);
+  if(ret<GP_OK){config_req->ret=ret;return;}
+  ret = enumConfig(config_req, config, "");
+  gp_widget_free(config);
+  config_req->ret = ret;
 }
 int GPCamera::EIO_GetConfigCb(eio_req *req){
+  HandleScope scope;
+  ev_unref(EV_DEFAULT_UC);
   get_config_request *config_req = (get_config_request*)req->data;
   
-  
-  config_req->camera->Unref();
-  free(config_req);
+  Handle<Value> argv[2];
+  if(config_req->ret == GP_OK){
+    Local<Array> result = Array::New(config_req->settings.size());
+    for(int i = 0; i < config_req->settings.size(); ++i){
+      result->Set(Number::New(i),String::New(config_req->settings.at(i).c_str()));
+    }
+    argv[0] = Undefined();
+    argv[1] = result;
+  }
+  else{
+    argv[0] = Number::New(config_req->ret);
+    argv[1] = Undefined();
+  }
+
+  config_req->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+  config_req->cb.Dispose();  
+  config_req->cameraObject->Unref();
+  delete config_req;
   return 0;
 }
 Handle<Value>
@@ -112,8 +168,9 @@ GPCamera::GetConfigValue(const Arguments& args) {
   HandleScope scope;
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
-  MALLOC_STRUCT(config_req, get_config_request);
-  config_req->camera = camera;
+  get_config_request *config_req = new get_config_request();
+  config_req->cameraObject = camera;
+  config_req->camera       = camera->getCamera();
   REQ_STR_ARG(0, key);
   REQ_FUN_ARG(1, cb);
   
@@ -127,9 +184,12 @@ GPCamera::EIO_GetConfigValue(eio_req *req){
 }
 int
 GPCamera::EIO_GetConfigValueCb(eio_req *req){
+  HandleScope scope;
+  ev_unref(EV_DEFAULT_UC);
+
   get_config_request *config_req = (get_config_request *)req->data;
-  config_req->camera->Unref();
-  free(config_req);
+  config_req->cameraObject->Unref();
+  delete config_req;  
   return 0;
 }
 
@@ -138,7 +198,7 @@ GPCamera::SetConfigValue(const Arguments& args) {
   HandleScope scope;
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
-  MALLOC_STRUCT(config_req, set_config_request);
+  set_config_request *config_req = new set_config_request();
   
   config_req->camera = camera;
   REQ_STR_ARG(0, key);
@@ -154,8 +214,11 @@ GPCamera::EIO_SetConfigValue(eio_req *req){
 }
 int
 GPCamera::EIO_SetConfigValueCb(eio_req *req){
+  HandleScope scope;
+  ev_unref(EV_DEFAULT_UC);
+
   get_config_request *config_req = (get_config_request *)req->data;
-  config_req->camera->Unref();
+  config_req->cameraObject->Unref();
   return 0;
 }
 
@@ -192,7 +255,7 @@ GPCamera::GetPreview(const Arguments& args) {
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
   REQ_FUN_ARG(0, cb);
-  MALLOC_STRUCT(preview_req, take_picture_request);
+  take_picture_request *preview_req = new take_picture_request();
 
   preview_req->cb = Persistent<Function>::New(cb);
   preview_req->camera = camera->getCamera();
@@ -219,6 +282,7 @@ void GPCamera::EIO_CapturePreview(eio_req *req){
 
 int GPCamera::EIO_CapturePreviewCb(eio_req *req){
   HandleScope scope;
+  ev_unref(EV_DEFAULT_UC);
   int ret;
   CameraFile *file;
   take_picture_request *preview_req = (take_picture_request*) req->data;
@@ -243,7 +307,7 @@ int GPCamera::EIO_CapturePreviewCb(eio_req *req){
   preview_req->cb.Dispose();
   if(preview_req->ret == GP_OK)  gp_file_free(preview_req->file);
   preview_req->cameraObject->Unref();
-  free(preview_req);
+  delete preview_req;  
   return 0;  
 }
 

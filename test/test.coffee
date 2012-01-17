@@ -4,14 +4,24 @@ gphoto = new GPhoto.GPhoto2()
 http   = require 'http'
 process.title = 'node-gphoto2 test program'
 preview_listeners=new Array()
-
+express = require 'express'
 _gc = ()->gc() if typeof gc is 'function'
 
 requests = {}
 
+camera = undefined
+
+# Fetch a list of cameras and get the first one
+gphoto.list (cameras)->
+  _gc()
+  console.log "found #{cameras.length} cameras"
+  console.log cameras
+  camera = cameras[0] if cameras.length > 0
 
 
-deliverIndex = (req, res)->
+app = express.createServer()
+
+app.get '/', (req, res)->
   path = './test/test.html'
   fs.stat path, (err, stat)->
     if err
@@ -31,35 +41,33 @@ logRequests = ()->
     requests[d]=1
     console.log("#{fps} fps") if fps
 
-deliverPreview = (camera, req, res)->
-  preview_listeners.push res
-  if preview_listeners.length is 1
-    camera.getPreview (er, data)->
-      logRequests()
-      tmp = preview_listeners
-      preview_listeners = new Array()
-      d = Date.parse(new Date())
+app.get '/settings', (req, res)->
+  unless camera
+    res.send 404, 'Camera not connected'
+  else
+    camera.getConfig (er, settings)->
+      console.log JSON.stringify(settings)
+      res.send JSON.stringify(settings)
+app.get '/settings/*', (er, settings)->
+  
+app.get '/preview', (req, res)->
+  unless camera
+    res.send 404, 'Camera not connected'
+  else
+    preview_listeners.push res
+    if preview_listeners.length is 1
+      camera.getPreview (er, data)->
+        logRequests()
+        tmp = preview_listeners
+        preview_listeners = new Array()
+        d = Date.parse(new Date())
       
-      for listener in tmp
-        unless er
-          listener.writeHead 200, 'Content-Type': 'image/jpeg', 'Content-Length':data.length                
-          listener.write data
-        else
-          listener.writeHead 500
-        listener.end()
+        for listener in tmp
+          unless er
+            listener.writeHead 200, 'Content-Type': 'image/jpeg', 'Content-Length':data.length                
+            listener.write data
+          else
+            listener.writeHead 500
+          listener.end()
 
-gphoto.list (cameras)->
-  _gc()
-  console.log "found #{cameras.length} cameras"
-  console.log cameras
-  camera = cameras[0] if cameras.length > 0
-  if camera
-    _gc()    
-    console.log 'creating preview server'
-    server = http.createServer (req, res)->
-      if req.url == '/'
-        deliverIndex req, res
-      else
-        deliverPreview camera, req, res
-        _gc()
-    server.listen(1337, "0.0.0.0");
+app.listen 1337, "0.0.0.0"

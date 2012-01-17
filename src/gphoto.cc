@@ -54,7 +54,7 @@ Handle<Value> GPhoto2::List(const Arguments &args){
     GPhoto2 *gphoto = ObjectWrap::Unwrap<GPhoto2>(args.This());
     
     TryCatch try_catch;
-    MALLOC_STRUCT(list_req, list_request);
+    list_request *list_req =new list_request();
     list_req->cb = Persistent<Function>::New(cb);
     list_req->list = NULL;
     list_req->gphoto = gphoto;
@@ -120,7 +120,7 @@ int  GPhoto2::EIO_ListCb(eio_req *req){
     list_req->cb.Dispose();
     list_req->gphoto->Unref();
     gp_list_free(list_req->list);    
-    free(list_req);
+    delete list_req;
     return 0;
 }
 
