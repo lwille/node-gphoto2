@@ -2,3 +2,4 @@ build/
 .lock-wscript
 gphoto2.node
 test.js
+v8.log
