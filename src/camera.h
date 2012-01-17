@@ -25,6 +25,7 @@
       Persistent<Function> cb;
       Camera *camera;
       GPCamera *cameraObject;
+      CameraFile *file;
       GPContext *context;
       const char *data;
       size_t length;

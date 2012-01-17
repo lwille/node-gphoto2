@@ -184,14 +184,6 @@ Camera* GPCamera::getCamera(){
   return this->camera_;
 };
 
-//#define RETURN_ON_ERROR(REQ, FNAME, ARGS) RETURN_ON_ERROR(REQ, FNAME, ARGS, {})
-#define RETURN_ON_ERROR(REQ, FNAME, ARGS, CLEANUP)\
-REQ->ret = FNAME ARGS;\
-if(REQ->ret < GP_OK){\
-  printf(#FNAME"=%d\n", REQ->ret);\
-  CLEANUP;\
-  return;\
-}
 
 Handle<Value>
 GPCamera::GetPreview(const Arguments& args) {
@@ -213,23 +205,22 @@ GPCamera::GetPreview(const Arguments& args) {
 }
 void GPCamera::EIO_CapturePreview(eio_req *req){
   int ret;
-  CameraFile *file;
 
   take_picture_request *preview_req = (take_picture_request*) req->data;
   
-  RETURN_ON_ERROR(preview_req, gp_file_new, (&file), {});
-  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, file, preview_req->context), {gp_file_free(file);});
+  RETURN_ON_ERROR(preview_req, gp_file_new, (&preview_req->file), {});
+  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {gp_file_free(preview_req->file);});
   unsigned long int length;
-  RETURN_ON_ERROR(preview_req, gp_file_get_data_and_size, (file, &preview_req->data, &length), {gp_file_free(file);});
+  RETURN_ON_ERROR(preview_req, gp_file_get_data_and_size, (preview_req->file, &preview_req->data, &length), {gp_file_free(preview_req->file);});
   preview_req->length = (size_t)length;
-  RETURN_ON_ERROR(preview_req, gp_file_free, (file), {});
+  
 }
 
 int GPCamera::EIO_CapturePreviewCb(eio_req *req){
+  HandleScope scope;
   int ret;
   CameraFile *file;
   take_picture_request *preview_req = (take_picture_request*) req->data;
-  
   Handle<Value> argv[2];
   int argc = 1;
   if(preview_req->ret < GP_OK){
@@ -238,15 +229,20 @@ int GPCamera::EIO_CapturePreviewCb(eio_req *req){
   else {
     argc = 2;
     argv[0] = Undefined();
-    node::Buffer* buffer = node::Buffer::New((char*)preview_req->data, preview_req->length);
-    argv[1] = buffer->handle_;    
+    node::Buffer* slowBuffer = node::Buffer::New(preview_req->length);
+    memcpy(Buffer::Data(slowBuffer), preview_req->data, preview_req->length);
+    Local<Object> globalObj = v8::Context::GetCurrent()->Global();
+    Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(v8::String::New("Buffer")));
+    Handle<Value> constructorArgs[3] = { slowBuffer->handle_, v8::Integer::New(preview_req->length), v8::Integer::New(0) };
+    Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
+    argv[1] =actualBuffer;
   }
   
   preview_req->cb->Call(Context::GetCurrent()->Global(), argc, argv);
-  
   preview_req->cb.Dispose();
-  free(preview_req);
+  if(preview_req->ret == GP_OK)  gp_file_free(preview_req->file);
   preview_req->cameraObject->Unref();
+  free(preview_req);
   return 0;  
 }
 
