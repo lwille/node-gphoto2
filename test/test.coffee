@@ -2,7 +2,7 @@ GPhoto = require "../main"
 fs     = require "fs"
 gphoto = new GPhoto.GPhoto2()
 http   = require 'http'
-
+process.title = 'node-gphoto2 test program'
 preview_listeners=new Array()
 
 _gc = ()->gc() if typeof gc is 'function'
@@ -26,9 +26,10 @@ logRequests = ()->
   if requests[d] > 0
     requests[d]++
   else
+    fps = requests[d-1]
+    requests = {}
     requests[d]=1
-    console.log("#{requests[d-1]} fps")
-    delete requests[d-1]
+    console.log("#{fps} fps") if fps
 
 deliverPreview = (camera, req, res)->
   preview_listeners.push res
