@@ -17,7 +17,12 @@ gphoto.list (cameras)->
   console.log "found #{cameras.length} cameras"
   console.log cameras
   camera = cameras[0] if cameras.length > 0
-
+  camera.getConfig (er, settings)->
+    camera.getConfigValue settings, (er, result)->
+      if er
+        console.log "getConfigValue error:", er
+      else
+        console.log result
 
 app = express.createServer()
 
@@ -46,9 +51,8 @@ app.get '/settings', (req, res)->
     res.send 404, 'Camera not connected'
   else
     camera.getConfig (er, settings)->
-      console.log JSON.stringify(settings)
-      res.send JSON.stringify(settings)
-app.get '/settings/*', (er, settings)->
+      camera.getConfigValue settings, (er, result)->
+        res.send JSON.stringify(result)
   
 app.get '/preview', (req, res)->
   unless camera
