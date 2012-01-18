@@ -3,7 +3,7 @@ A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote con
 
 The included test application currently allows you to
 
-* receive a live preview of your camera (if supported). Tested on a 2010 iMac at ~17 fps.
+* receive a live preview of your camera (if supported). Tested with an EOS 550D on a 2010 iMac at ~17 fps.
 
 The test application can be started using ``npm test`` and runs on http://localhost:1337.
 
@@ -15,8 +15,7 @@ The test application can be started using ``npm test`` and runs on http://localh
 ## Installation
     git clone git@github.com:lwille/node-gphoto2.git
     cd node-gphoto2
-    npm i -l
-Of course you can also add node-gphoto2 to your project's package.json and run ``npm i -l``.
+    npm install
 
 ## Usage
     gp = require('node-gphoto2');
