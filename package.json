@@ -18,6 +18,6 @@
   },
   "scripts": {
     "preinstall": "node-waf clean || (exit 0); node-waf configure build",
-    "test": "killall PTPCamera;node --expose-gc test/test.js"
+    "test": "killall PTPCamera;coffee --nodejs --expose- test/test.coffee"
   }
 }
