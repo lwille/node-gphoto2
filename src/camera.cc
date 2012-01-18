@@ -3,6 +3,10 @@
 #include <node_buffer.h>
 #include <sstream>
 #include <gphoto2/gphoto2-widget.h>
+
+#include "cvv8/v8-convert.hpp"
+namespace cv = cvv8;
+
 using namespace v8;
 using namespace node;
 
@@ -100,34 +104,6 @@ GPCamera::GetConfig(const Arguments& args) {
   return Undefined();  
 }
 
-int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, std::string prefix){
-  int ret,n,i;
-  std::ostringstream newprefix;
-  char* label, *name, *uselabel;
-	CameraWidgetType	type;
-  gp_widget_get_label (root,(const char**)&label);
-  ret = gp_widget_get_name (root, (const char**)&name);
-	gp_widget_get_type (root, &type);
-	if (std::string((const char*)name).length())
-		uselabel = name;
-	else
-		uselabel = label;
-	n = gp_widget_count_children(root);
-	newprefix << prefix << "/" << uselabel;
-	if ((type != GP_WIDGET_WINDOW) && (type != GP_WIDGET_SECTION)){
-    req->settings.push_back(newprefix.str());
-	}
-	for (i=0; i<n; i++) {
-		CameraWidget *child;
-	
-		ret = gp_widget_get_child(root, i, &child);
-		if (ret != GP_OK)
-			continue;
-		enumConfig(req, child, newprefix.str());
-	}
-  return GP_OK;  
-}
-
 void GPCamera::EIO_GetConfig(eio_req *req){
   get_config_request *config_req = (get_config_request*)req->data;
   CameraWidget *config;
@@ -145,15 +121,11 @@ int GPCamera::EIO_GetConfigCb(eio_req *req){
   
   Handle<Value> argv[2];
   if(config_req->ret == GP_OK){
-    Local<Array> result = Array::New(config_req->settings.size());
-    for(int i = 0; i < config_req->settings.size(); ++i){
-      result->Set(Number::New(i),String::New(config_req->settings.at(i).c_str()));
-    }
     argv[0] = Undefined();
-    argv[1] = result;
+    argv[1] = cv::CastToJS(config_req->keys);
   }
   else{
-    argv[0] = Number::New(config_req->ret);
+    argv[0] = cv::CastToJS(config_req->ret);
     argv[1] = Undefined();
   }
 
@@ -168,26 +140,67 @@ GPCamera::GetConfigValue(const Arguments& args) {
   HandleScope scope;
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
+
+  REQ_ARR_ARG(0, js_keys);
+  REQ_FUN_ARG(1, cb);
+
   get_config_request *config_req = new get_config_request();
   config_req->cameraObject = camera;
   config_req->camera       = camera->getCamera();
-  REQ_STR_ARG(0, key);
-  REQ_FUN_ARG(1, cb);
+  config_req->cb = Persistent<Function>::New(cb);
+  
+  // transform keys Array into a stl::deque
+
+  std::list<std::string> keys(cv::CastFromJS<std::list<std::string> >(js_keys));
+  config_req->keys = keys;
+  eio_custom(EIO_GetConfigValue, EIO_PRI_DEFAULT, EIO_GetConfigValueCb, config_req);
+  ev_ref(EV_DEFAULT_UC);
+  
+  //printf("Retrieving %d settings\n", keys->Length());
   
   return Undefined();
 }
 
+
+
 void
 GPCamera::EIO_GetConfigValue(eio_req *req){
+  int ret;
   get_config_request *config_req = (get_config_request *)req->data;
-  
+  CameraWidget *root;
+  for(StringList::iterator i=config_req->keys.begin(); i!=config_req->keys.end(); ++i){
+    CameraWidget *widget;
+    ret = getConfigWidget(config_req, *i, &widget, &root);
+    if(ret < GP_OK){
+      std::ostringstream str;
+      str << "Error:" << ret;
+      config_req->results[*i] = str.str();
+    }else{
+      CameraWidgetType type;
+      // ret = gp_widget_get_type (widget, &type);
+      std::string val;
+    
+      ret = getWidgetValue(config_req->context, *i, &val, widget);
+      config_req->results[*i] = val;
+    }
+    
+  }
 }
 int
 GPCamera::EIO_GetConfigValueCb(eio_req *req){
   HandleScope scope;
   ev_unref(EV_DEFAULT_UC);
-
   get_config_request *config_req = (get_config_request *)req->data;
+  
+  Handle<Value> argv[2];
+  
+  
+  argv[0] = Undefined();
+  argv[1] = cv::CastToJS(config_req->results);
+  
+  config_req->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+  config_req->cb.Dispose();
+
   config_req->cameraObject->Unref();
   delete config_req;  
   return 0;

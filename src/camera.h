@@ -6,9 +6,11 @@
   #include <node_buffer.h>
   #include <string>
   #include "gphoto.h"
-  #include <deque>
+  #include <list>
+  #include <map>
   
   using namespace v8;
+  typedef std::list<std::string> StringList;
   
   static Persistent<String> camera_getConfig_symbol;
   static Persistent<String> camera_getConfigValue_symbol;
@@ -39,9 +41,9 @@
       GPCamera  *cameraObject;
       Camera    *camera;
       GPContext *context;
-      std::string key;
       int ret;
-      std::deque<std::string> settings;
+      StringList keys;
+      std::map<std::string, std::string> results;
     };
     struct set_config_request {
       Persistent<Function> cb;
@@ -52,6 +54,9 @@
       int ret;
     };
     static int enumConfig(get_config_request* req, CameraWidget *root, std::string path);
+    static int getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig);
+    static int getWidgetValue (GPContext *context, std::string name, std::string *value, CameraWidget *widget);
+    
     bool close();
     
     public:
