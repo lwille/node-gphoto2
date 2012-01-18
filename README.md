@@ -18,18 +18,20 @@ The test application can be started using ``npm test`` and runs on http://localh
     npm install
 
 ## Usage
-    gp = require('node-gphoto2');
-    GPhoto = new gp.GPhoto2();
-    
-    // List cameras
-    GPhoto.list(function(list){console.log(list[0].model)});
-    
-    // Take picture with camera object obtained from list()
-    camera.takePicture(function(data){
-      fs.writeFile("picture.jpg", data);
-    })
-    
-    // Get preview picture (from AF Sensor, fails silently if unsupported)
-    camera.getPreview(function(data){
-      fs.writeFile("picture.jpg", data);
-    })
+```javascript
+gp = require('node-gphoto2');
+GPhoto = new gp.GPhoto2();
+
+// List cameras
+GPhoto.list(function(list){console.log(list[0].model)});
+
+// Take picture with camera object obtained from list()
+camera.takePicture(function(data){
+  fs.writeFile("picture.jpg", data);
+})
+
+// Get preview picture (from AF Sensor, fails silently if unsupported)
+camera.getPreview(function(data){
+  fs.writeFile("picture.jpg", data);
+})
+```
