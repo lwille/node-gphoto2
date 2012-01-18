@@ -58,7 +58,7 @@ Handle<Value> GPhoto2::List(const Arguments &args){
     list_req->cb = Persistent<Function>::New(cb);
     list_req->list = NULL;
     list_req->gphoto = gphoto;
-    
+    list_req->This = Persistent<Object>::New(args.This());
     eio_custom(EIO_List, EIO_PRI_DEFAULT, EIO_ListCb, list_req);
     ev_ref(EV_DEFAULT_UC);
     gphoto->Ref();
@@ -106,7 +106,8 @@ int  GPhoto2::EIO_ListCb(eio_req *req){
       TryCatch try_catch;
       // call the _javascript_ constructor to create a new Camera object
    		Persistent<Object> js_camera(GPCamera::constructor_template->GetFunction()->NewInstance(3, constructor_args));
-      result->Set(Number::New(i), Persistent<Object>::New(js_camera));     		
+      js_camera->Set(String::NewSymbol("_gphoto2_ref_obj_"), list_req->This);
+      result->Set(Number::New(i), Persistent<Object>::New(js_camera));
       if (try_catch.HasCaught()) node::FatalException(try_catch);
       
     }
@@ -116,7 +117,7 @@ int  GPhoto2::EIO_ListCb(eio_req *req){
     list_req->cb->Call(Context::GetCurrent()->Global(), 1, argv);
     
     if (try_catch.HasCaught()) node::FatalException(try_catch);
-    
+    list_req->This.Dispose();
     list_req->cb.Dispose();
     list_req->gphoto->Unref();
     gp_list_free(list_req->list);    
