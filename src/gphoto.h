@@ -18,7 +18,8 @@ class GPhoto2: public node::ObjectWrap {
   struct list_request {
       Persistent<Function> cb;
       GPhoto2             *gphoto;
-      CameraList	        *list;    	
+      CameraList	        *list;
+      Persistent<Object>	This;
   };
   static void EIO_List(eio_req *req);
   static int EIO_ListCb(eio_req *req);  
