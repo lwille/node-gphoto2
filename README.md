@@ -4,6 +4,8 @@ A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote con
 The included test application currently allows you to
 
 * receive a live preview of your camera (if supported). Tested with an EOS 550D on a 2010 iMac at ~17 fps.
+* query a list of available configuration options
+* query the values of specific configuration options
 
 The test application can be started using ``npm test`` and runs on http://localhost:1337.
 
