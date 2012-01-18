@@ -10,3 +10,5 @@ init(Handle<Object> target)
 }
 
 NODE_MODULE(gphoto2, init);
+
+

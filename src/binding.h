@@ -18,6 +18,13 @@ String::New("Argument " #I " must be a function"))); \
 Local<Function> VAR = Local<Function>::Cast(args[I]);
 
 
+#define REQ_ARR_ARG(I, VAR) \
+if (args.Length() <= (I) || !args[I]->IsArray()) \
+return ThrowException(Exception::TypeError( \
+String::New("Argument " #I " must be an Array"))); \
+Local<Array> VAR = Local<Array>::Cast(args[I]);
+
+
 #define REQ_STR_ARG(I, VAR) \
 if (args.Length() <= (I) || !args[I]->IsString()) \
 return ThrowException(Exception::TypeError( \
