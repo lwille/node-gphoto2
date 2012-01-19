@@ -20,10 +20,14 @@ camera = undefined
 gphoto.list (cameras)->
   _gc()
   console.log "found #{cameras.length} cameras"
-  console.log cameras
+  # select first Canon camera
   camera = _(cameras).chain().filter((camera)->camera.model.match /Canon/).first().value()
-  
+  # exit if no Canon camera is connected 
+  process.exit(-1) unless camera
+  # retrieve available configuration settings
   camera.getConfig (er, settings)->
+    console.log "loading #{camera.model} settings"
+    # retrieve configuration values for all settings
     camera.getConfigValue settings, (er, result)->
       if er
         console.log "getConfigValue error:", er

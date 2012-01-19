@@ -43,7 +43,7 @@
       GPContext *context;
       int ret;
       StringList keys;
-      std::map<std::string, std::string> results;
+      std::map<std::string, CameraWidget*> results;
     };
     struct set_config_request {
       Persistent<Function> cb;
@@ -55,7 +55,7 @@
     };
     static int enumConfig(get_config_request* req, CameraWidget *root, std::string path);
     static int getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig);
-    static int getWidgetValue (GPContext *context, std::string name, std::string *value, CameraWidget *widget);
+    static Handle<Value> getWidgetValue(GPContext *context, CameraWidget *widget);
     
     bool close();
     

@@ -3,29 +3,33 @@
 #include <sstream>
 
 
-int GPCamera::getWidgetValue(GPContext *context, std::string name, std::string *value, CameraWidget *widget) {
+#include "cvv8/v8-convert.hpp"
+namespace cv = cvv8;
+Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget) {
+  HandleScope scope;
 	const char *label;
 	CameraWidgetType	type;
-	int ret;
-
+  int ret;
+  Local<Object> value = Object::New();
+  
 	ret = gp_widget_get_type (widget, &type);
 	if (ret != GP_OK)
-		return ret;
+		return Undefined();
 	ret = gp_widget_get_label (widget, &label);
 	if (ret != GP_OK)
-		return ret;
-
+		return Undefined();
+  value->Set(cv::CastToJS("label"), cv::CastToJS(label));
+  value->Set(cv::CastToJS("type"), Undefined());
 //	printf ("Label: %s\n", label); /* "Label:" is not i18ned, the "label" variable is */
 	switch (type) {
 	case GP_WIDGET_TEXT: {		/* char *		*/
 		char *txt;
-
 		ret = gp_widget_get_value (widget, &txt);
 		if (ret == GP_OK) {
-		  (*value) = std::string(txt);
-      return GP_OK;
+      value->Set(cv::CastToJS("type"), cv::CastToJS("string"));
+      value->Set(cv::CastToJS("value"), cv::CastToJS(txt));
 		} else {
-			gp_context_error (context, "Failed to retrieve value of text widget %s.", name.c_str());
+			gp_context_error (context, "Failed to retrieve value of text widget %s.", label);
 		}
 		break;
 	}
@@ -36,25 +40,26 @@ int GPCamera::getWidgetValue(GPContext *context, std::string name, std::string *
 		if (ret == GP_OK)
 			ret = gp_widget_get_value (widget, &f);
 		if (ret == GP_OK) {
-      std::ostringstream out;
-      out << f;
-		  (*value) = out.str();
-      return ret;
+		  value->Set(cv::CastToJS("type"), cv::CastToJS("range"));
+      value->Set(cv::CastToJS("value"), cv::CastToJS(f));
+      value->Set(cv::CastToJS("max"), cv::CastToJS(t));
+      value->Set(cv::CastToJS("min"), cv::CastToJS(b));
+      value->Set(cv::CastToJS("set"), cv::CastToJS(s));
+      break;
 		} else {
-			gp_context_error (context, "Failed to retrieve values of range widget %s.", name.c_str());
+			gp_context_error (context, "Failed to retrieve values of range widget %s.", label);
 		}
 		break;
 	}
 	case GP_WIDGET_TOGGLE: {	/* int		*/
 		int	t;    
 		ret = gp_widget_get_value (widget, &t);
-		if (ret == GP_OK) {
-      std::ostringstream out;
-      out << t;
-  	  (*value) = out.str();
-      return ret;			
+		if (ret == GP_OK) {		  
+		  value->Set(cv::CastToJS("type"), cv::CastToJS("toggle"));
+      value->Set(cv::CastToJS("value"), cv::CastToJS(t));
+      break;
 		} else {
-			gp_context_error (context, "Failed to retrieve values of toggle widget %s.", name.c_str());
+			gp_context_error (context, "Failed to retrieve values of toggle widget %s.", label);
 		}
 		break;
 	}
@@ -66,22 +71,45 @@ int GPCamera::getWidgetValue(GPContext *context, std::string name, std::string *
 
 		ret = gp_widget_get_value (widget, &t);
 		if (ret != GP_OK) {
-			gp_context_error (context, "Failed to retrieve values of date/time widget %s.", name.c_str());
+			gp_context_error (context, "Failed to retrieve values of date/time widget %s.", label);
 			break;
 		}
-		xtime = t;
-    std::ostringstream out;
-    out << std::ctime(&xtime);
-    (*value) = out.str();
-		break;
+	  value->Set(cv::CastToJS("type"), cv::CastToJS("date"));
+    value->Set(cv::CastToJS("value"), cv::CastToJS(t));
+    break;
 	}
 	case GP_WIDGET_MENU:
 	case GP_WIDGET_RADIO: { /* char *		*/
-		int cnt, i;
-		char *current;
+    int cnt, i;
+    const char *current = NULL;
+    
+    
+    ret = gp_widget_get_value (widget, &current);
+    
+    
+		cnt = gp_widget_count_choices (widget);
+		if (cnt < GP_OK) {
+			ret = cnt;
+			break;
+		}
+		ret = GP_ERROR_BAD_PARAMETERS;
+		
+    Local<Array> choices = Array::New(cnt);
+		for ( i=0; i<cnt; i++) {
+			const char *choice = NULL;
+      
+			ret = gp_widget_get_choice (widget, i, &choice);
+			if (ret != GP_OK)
+				continue;				
+      choices->Set(cv::CastToJS(i), cv::CastToJS(choice));    	  
+		}
 
-		ret = gp_widget_get_value (widget, &current);
-    (*value) = std::string(current);
+		/* Lets just try setting the value directly, in case we have flexible setters,
+		 * like PTP shutterspeed. */
+   		
+	  value->Set(cv::CastToJS("type"), cv::CastToJS("choice"));
+    value->Set(cv::CastToJS("value"), cv::CastToJS(current));
+    value->Set(cv::CastToJS("choices"), choices);
 		break;
 	}
 
@@ -90,8 +118,8 @@ int GPCamera::getWidgetValue(GPContext *context, std::string name, std::string *
 	case GP_WIDGET_SECTION:
 	case GP_WIDGET_BUTTON:
 		break;
-	}
-	return GP_OK;
+	} 
+  return scope.Close(value);
 }
 
 int GPCamera::getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig){

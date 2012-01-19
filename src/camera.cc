@@ -169,21 +169,13 @@ GPCamera::EIO_GetConfigValue(eio_req *req){
   get_config_request *config_req = (get_config_request *)req->data;
   CameraWidget *root;
   for(StringList::iterator i=config_req->keys.begin(); i!=config_req->keys.end(); ++i){
-    CameraWidget *widget;
+    CameraWidget *widget = NULL;
     ret = getConfigWidget(config_req, *i, &widget, &root);
-    if(ret < GP_OK){
-      std::ostringstream str;
-      str << "Error:" << ret;
-      config_req->results[*i] = str.str();
+    if(ret == GP_OK){
+      config_req->results[*i] = widget;
     }else{
-      CameraWidgetType type;
-      // ret = gp_widget_get_type (widget, &type);
-      std::string val;
-    
-      ret = getWidgetValue(config_req->context, *i, &val, widget);
-      config_req->results[*i] = val;
+      config_req->results[*i] = NULL;
     }
-    
   }
 }
 int
@@ -196,7 +188,12 @@ GPCamera::EIO_GetConfigValueCb(eio_req *req){
   
   
   argv[0] = Undefined();
-  argv[1] = cv::CastToJS(config_req->results);
+  Local<Object> values = Object::New();
+  for(std::map<std::string, CameraWidget*>::iterator i  = config_req->results.begin(); i != config_req->results.end(); ++i){
+    printf("Getting value for %s\n", (*i).first.c_str());
+    values->Set(cv::CastToJS((*i).first), getWidgetValue(config_req->context, (*i).second));
+  }
+  argv[1] = values;
   
   config_req->cb->Call(Context::GetCurrent()->Global(), 2, argv);
   config_req->cb.Dispose();
