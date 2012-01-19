@@ -1,18 +1,45 @@
 <html>
 <body>
   <img id="img">
-  <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-  <script type="text/javascript" charset="utf-8">
+  <script type="text/javascript" src="//www.google.com/jsapi"></script>
+  <script type="text/javascript" src="/js/dat.gui.js"></script>
+  <script type="text/javascript" src="/js/superagent.js"></script>
+
+  <script type="text/javascript">
     google.load('jquery', '1.7.1');
-    google.setOnLoadCallback(function(){
-      $(function(){
-        var img = $('#img');
-        img.load(function(){
-          img.attr('src','/preview?'+Date.parse(new Date()));
-        });
-        img.attr('src','/preview');
-      })
-    });    
   </script>
+  <script type="text/coffeescript">
+    request = superagent
+    class GPhoto
+      startPreview: ()->
+        $('#img').bind('load',()->$(@).attr 'src','/preview?'+Date.parse new Date()).attr 'src','/preview'
+      stopPreview: ()->
+        $('#img').unbind('load')
+      loadSettings: (cb)=>
+        request.get '/settings', (settings)=>
+          cb JSON.parse(settings.text) if cb
+          
+      displaySettings: ()=>
+        @gui = new dat.GUI() unless @gui
+        @loadSettings (settings)=>
+          
+          for key of settings
+            console.log val
+            val =  settings[key]
+            foo ={}
+            foo[val.label] = val.value
+            if val.type is 'string' or val.type is 'toggle'
+              @gui.add foo, val.label
+            else if val.type is 'choice'
+              @gui.add foo, val.label, val.choices
+            else if val.type is 'choice'
+              @gui.add foo, val.label, val.choices
+              
+        
+    window.gphoto = new GPhoto()
+  </script>
+  </script>
+  <script type="text/javascript" src="http://coffeescript.org/extras/coffee-script.js"></script>
+  
 </body>
 </html>

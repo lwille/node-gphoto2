@@ -36,15 +36,10 @@ gphoto.list (cameras)->
 
 app = express.createServer()
 
-app.get '/', (req, res)->
-  path = './test/test.html'
-  fs.stat path, (err, stat)->
-    if err
-      res.writeHead(404, {'Content-Type': 'text/html'});
-      res.end(""+err);
-    else
-      res.writeHead 200, 'Content-Type':'text/html', 'Content-Length':stat.size
-      fs.createReadStream(path).pipe res
+app.use express.static __dirname + '/public'
+
+app.register '.html', require('jade')
+app.get '/', (req, res)->res.render 'index.html'
 
 logRequests = ()->
   d=Date.parse(new Date())/1000
@@ -56,6 +51,10 @@ logRequests = ()->
     requests[d]=1
     console.log("#{fps} fps") if fps
 
+# save configuration
+app.put '/settings*', (req, res)->
+
+# get configuration
 app.get '/settings', (req, res)->
   unless camera
     res.send 404, 'Camera not connected'
