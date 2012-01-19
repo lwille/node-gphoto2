@@ -103,9 +103,6 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 				continue;				
       choices->Set(cv::CastToJS(i), cv::CastToJS(choice));    	  
 		}
-
-		/* Lets just try setting the value directly, in case we have flexible setters,
-		 * like PTP shutterspeed. */
    		
 	  value->Set(cv::CastToJS("type"), cv::CastToJS("choice"));
     value->Set(cv::CastToJS("value"), cv::CastToJS(current));
