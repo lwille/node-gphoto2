@@ -13,11 +13,10 @@ The test application can be started using ``npm test`` and runs on http://localh
 * Node.js ~0.6.5
 * NPM ~1.1.0
 * libgphoto2 ~2.4.11 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* clang compiler
 
 ## Installation
-    git clone git@github.com:lwille/node-gphoto2.git
-    cd node-gphoto2
-    npm install
+    npm install gphoto2
 
 ## Usage
 ```javascript
