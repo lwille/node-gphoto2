@@ -1,13 +1,18 @@
+process.title = 'node-gphoto2 test program'
+
+
 GPhoto = require "../main"
 fs     = require "fs"
 gphoto = new GPhoto.GPhoto2()
 http   = require 'http'
-process.title = 'node-gphoto2 test program'
-preview_listeners=new Array()
 express = require 'express'
+_      = require 'underscore'
+
+
 _gc = ()->gc() if typeof gc is 'function'
 
 requests = {}
+preview_listeners = new Array()
 
 camera = undefined
 
@@ -16,7 +21,8 @@ gphoto.list (cameras)->
   _gc()
   console.log "found #{cameras.length} cameras"
   console.log cameras
-  camera = cameras[0] if cameras.length > 0
+  camera = _(cameras).chain().filter((camera)->camera.model.match /Canon/).first().value()
+  
   camera.getConfig (er, settings)->
     camera.getConfigValue settings, (er, result)->
       if er
