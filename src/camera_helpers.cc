@@ -75,7 +75,7 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 			break;
 		}
 	  value->Set(cv::CastToJS("type"), cv::CastToJS("date"));
-    value->Set(cv::CastToJS("value"), cv::CastToJS(t));
+    value->Set(cv::CastToJS("value"), Date::New(t*1000.0));
     break;
 	}
 	case GP_WIDGET_MENU:
