@@ -9,6 +9,27 @@
   #include <list>
   #include <map>
   
+  #include "cvv8/v8-convert.hpp"
+  namespace cv = cvv8;
+  
+  // Class for templated typedef's
+  // Initialize as A<Typename>::Tree etc.
+  template <typename T>
+  class A {
+  private:    
+    A(void) {};
+  public:
+    typedef std::map<std::string, T> Tree;
+  };
+  
+  
+  struct TreeNode{
+    CameraWidget* value;
+    GPContext *context;
+    A<TreeNode>::Tree subtree;
+    TreeNode(){};
+  };
+  
   using namespace v8;
   typedef std::list<std::string> StringList;
   
@@ -41,9 +62,10 @@
       GPCamera  *cameraObject;
       Camera    *camera;
       GPContext *context;
+      CameraWidget *root;      
       int ret;
       StringList keys;
-      std::map<std::string, CameraWidget*> results;
+      A<TreeNode>::Tree settings;
     };
     struct set_config_request {
       Persistent<Function> cb;
@@ -53,13 +75,13 @@
       int intValue;
       int ret;
     };
-    static int enumConfig(get_config_request* req, CameraWidget *root, std::string path);
+    static int enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode>::Tree &tree);
     static int getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig);
-    static Handle<Value> getWidgetValue(GPContext *context, CameraWidget *widget);
     
     bool close();
     
     public:
+      static Handle<Value> getWidgetValue(GPContext *context, CameraWidget *widget);
       static Persistent<FunctionTemplate> constructor_template;
       GPCamera(Handle<External> js_gphoto, std::string  model, std::string  port);
       ~GPCamera();
@@ -85,4 +107,5 @@
       void setCamera(Camera *camera){this->camera_=camera;};
       Camera* getCamera();
   };
+  
 #endif

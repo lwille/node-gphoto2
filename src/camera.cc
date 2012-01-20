@@ -3,9 +3,8 @@
 #include <node_buffer.h>
 #include <sstream>
 #include <gphoto2/gphoto2-widget.h>
+#include <list>
 
-#include "cvv8/v8-convert.hpp"
-namespace cv = cvv8;
 
 using namespace v8;
 using namespace node;
@@ -104,25 +103,53 @@ GPCamera::GetConfig(const Arguments& args) {
   return Undefined();  
 }
 
+namespace cvv8 {
+  template<> struct NativeToJS<TreeNode>
+    {
+      v8::Handle<v8::Value> operator()( TreeNode const & node ) const
+      {
+        HandleScope scope;
+        if(node.value){
+          Handle<Value> value = GPCamera::getWidgetValue(node.context, node.value);
+          if(value->IsObject()){
+            Local<Object> obj = value->ToObject();
+            if(node.subtree.size()){
+              obj->Set(cvv8::CastToJS("children"), cvv8::CastToJS(node.subtree));
+            }else{  
+              obj->Set(cvv8::CastToJS("children"), Undefined());
+            }
+          }
+          return scope.Close(value);
+        }else{
+          return scope.Close(Undefined());
+        }
+      }
+    };
+}
+
+
+
 void GPCamera::EIO_GetConfig(eio_req *req){
   get_config_request *config_req = (get_config_request*)req->data;
-  CameraWidget *config;
   int ret;
-  ret = gp_camera_get_config(config_req->camera, &config, config_req->context);
+  
+  
+  ret = gp_camera_get_config(config_req->camera, &config_req->root, config_req->context);
   if(ret<GP_OK){config_req->ret=ret;return;}
-  ret = enumConfig(config_req, config, "");
-  gp_widget_free(config);
+  ret = enumConfig(config_req, config_req->root, config_req->settings);
+
   config_req->ret = ret;
 }
 int GPCamera::EIO_GetConfigCb(eio_req *req){
   HandleScope scope;
-  ev_unref(EV_DEFAULT_UC);
   get_config_request *config_req = (get_config_request*)req->data;
   
   Handle<Value> argv[2];
+  
+  
   if(config_req->ret == GP_OK){
     argv[0] = Undefined();
-    argv[1] = cv::CastToJS(config_req->keys);
+    argv[1] = cv::CastToJS(config_req->settings);
   }
   else{
     argv[0] = cv::CastToJS(config_req->ret);
@@ -130,9 +157,12 @@ int GPCamera::EIO_GetConfigCb(eio_req *req){
   }
 
   config_req->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+  
+  gp_widget_free(config_req->root);
   config_req->cb.Dispose();  
   config_req->cameraObject->Unref();
   delete config_req;
+  ev_unref(EV_DEFAULT_UC);
   return 0;
 }
 Handle<Value>
@@ -171,11 +201,14 @@ GPCamera::EIO_GetConfigValue(eio_req *req){
   for(StringList::iterator i=config_req->keys.begin(); i!=config_req->keys.end(); ++i){
     CameraWidget *widget = NULL;
     ret = getConfigWidget(config_req, *i, &widget, &root);
+    TreeNode node;
+    node.context = config_req->context;
     if(ret == GP_OK){
-      config_req->results[*i] = widget;
+      node.value = widget;
     }else{
-      config_req->results[*i] = NULL;
+      node.value = NULL;
     }
+    config_req->settings[*i] = node;    
   }
 }
 int
@@ -189,9 +222,10 @@ GPCamera::EIO_GetConfigValueCb(eio_req *req){
   
   argv[0] = Undefined();
   Local<Object> values = Object::New();
-  for(std::map<std::string, CameraWidget*>::iterator i  = config_req->results.begin(); i != config_req->results.end(); ++i){
+  for(A<TreeNode>::Tree::iterator i  = config_req->settings.begin(); i != config_req->settings.end(); ++i){
     printf("Getting value for %s\n", (*i).first.c_str());
-    values->Set(cv::CastToJS((*i).first), getWidgetValue(config_req->context, (*i).second));
+    TreeNode node =  (*i).second;
+    values->Set(cv::CastToJS((*i).first), getWidgetValue(config_req->context, node.value));
   }
   argv[1] = values;
   

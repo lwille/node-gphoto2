@@ -112,8 +112,13 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 
 	/* ignore: */
 	case GP_WIDGET_WINDOW:
+    value->Set(cv::CastToJS("type"), cv::CastToJS("window"));
+    break;
 	case GP_WIDGET_SECTION:
+    value->Set(cv::CastToJS("type"), cv::CastToJS("section"));
+  break;
 	case GP_WIDGET_BUTTON:
+    value->Set(cv::CastToJS("type"), cv::CastToJS("button"));    
 		break;
 	} 
   return scope.Close(value);
@@ -168,30 +173,29 @@ int GPCamera::getConfigWidget(get_config_request *req, std::string name, CameraW
   	return GP_OK;  
 }
 
-int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, std::string prefix){
+int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode>::Tree &tree){
   int ret,n,i;
-  std::ostringstream newprefix;
   char* label, *name, *uselabel;
-	CameraWidgetType	type;
+  
   gp_widget_get_label (root,(const char**)&label);
   ret = gp_widget_get_name (root, (const char**)&name);
-	gp_widget_get_type (root, &type);
+  
+	TreeNode node;	
+  node.value = root;
+  node.context  = req->context;
 	if (std::string((const char*)name).length())
 		uselabel = name;
 	else
 		uselabel = label;
+
 	n = gp_widget_count_children(root);
-	newprefix << prefix << "/" << uselabel;
-	if ((type != GP_WIDGET_WINDOW) && (type != GP_WIDGET_SECTION)){
-    req->keys.push_back(newprefix.str());
-	}
 	for (i=0; i<n; i++) {
 		CameraWidget *child;
-	
 		ret = gp_widget_get_child(root, i, &child);
 		if (ret != GP_OK)
-			continue;
-		enumConfig(req, child, newprefix.str());
+			continue;			
+		enumConfig(req, child, node.subtree);
 	}
+  tree[uselabel] = node;
   return GP_OK;  
 }
