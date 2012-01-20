@@ -25,14 +25,9 @@ gphoto.list (cameras)->
   # exit if no Canon camera is connected 
   process.exit(-1) unless camera
   # retrieve available configuration settings
+  console.log "loading #{camera.model} settings"
   camera.getConfig (er, settings)->
-    console.log "loading #{camera.model} settings"
-    # retrieve configuration values for all settings
-    camera.getConfigValue settings, (er, result)->
-      if er
-        console.log "getConfigValue error:", er
-      else
-        console.log result
+    console.log settings
 
 app = express.createServer()
 
@@ -60,8 +55,7 @@ app.get '/settings', (req, res)->
     res.send 404, 'Camera not connected'
   else
     camera.getConfig (er, settings)->
-      camera.getConfigValue settings, (er, result)->
-        res.send JSON.stringify(result)
+      res.send JSON.stringify(settings)
   
 app.get '/preview', (req, res)->
   unless camera
