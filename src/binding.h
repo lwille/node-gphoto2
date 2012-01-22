@@ -1,6 +1,29 @@
 #ifndef __BINDING_H
 #define __BINDING_H
 
+#include <string>
+#include <gphoto2/gphoto2-camera.h>
+#include <cstdlib>
+#include <node.h>
+#include <node_buffer.h>
+#include <string>
+#include <list>
+#include <map>
+#include "cvv8/v8-convert.hpp"
+
+
+
+#define ASYNC_FN(NAME)\
+  static void NAME(uv_work_t* req)
+
+#define ASYNC_CB ASYNC_FN
+
+#define DO_ASYNC(BATON,ASYNC,AFTER)\
+  uv_work_t* req = new uv_work_t;\
+  req->data = BATON;\
+  uv_queue_work(uv_default_loop(), req, ASYNC, AFTER);
+
+
 #define ADD_PROTOTYPE_METHOD(class, name, method) \
 class ## _ ## name ## _symbol = NODE_PSYMBOL(#name); \
 NODE_SET_PROTOTYPE_METHOD(constructor_template, #name, method);
@@ -45,8 +68,6 @@ if(REQ->ret < GP_OK){\
 #define V8STR(str) String::New(str)
 #define V8STR2(str, len) String::New(str, len)
 
-#include <string>
-#include <gphoto2/gphoto2-camera.h>
 
 // Useful functions taken from library examples, with slight modifications
 int open_camera (Camera ** camera, std::string model, std::string port, GPPortInfoList *portinfolist, CameraAbilitiesList	*abilities);

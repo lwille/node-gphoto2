@@ -1,15 +1,7 @@
 #ifndef __CAMERA_H
 #define __CAMERA_H
-  #include <gphoto2/gphoto2-camera.h>
-  #include <cstdlib>
-  #include <node.h>
-  #include <node_buffer.h>
-  #include <string>
+  #include "binding.h"
   #include "gphoto.h"
-  #include <list>
-  #include <map>
-  
-  #include "cvv8/v8-convert.hpp"
   namespace cv = cvv8;
   
   // Class for templated typedef's
@@ -92,16 +84,16 @@
       static Handle<Value> SetConfigValue(const Arguments &args);
       static Handle<Value> TakePicture(const Arguments &args);
       static Handle<Value> GetPreview(const Arguments& args);
-      static void EIO_GetConfig(eio_req *req);
-      static int EIO_GetConfigCb(eio_req *req);
-      static void EIO_GetConfigValue(eio_req *req);
-      static int  EIO_GetConfigValueCb(eio_req *req);
-      static void EIO_SetConfigValue(eio_req *req);
-      static int  EIO_SetConfigValueCb(eio_req *req);
-      static void EIO_TakePicture(eio_req *req);
-      static int  EIO_TakePictureCb(eio_req *req);
-      static void EIO_CapturePreview(eio_req *req);
-      static int EIO_CapturePreviewCb(eio_req *req);
+      ASYNC_FN(EIO_GetConfig);
+      ASYNC_CB(EIO_GetConfigCb);
+      ASYNC_FN(EIO_GetConfigValue);
+      ASYNC_CB(EIO_GetConfigValueCb);
+      ASYNC_FN(EIO_SetConfigValue);
+      ASYNC_CB(EIO_SetConfigValueCb);
+      ASYNC_FN(EIO_TakePicture);
+      ASYNC_CB(EIO_TakePictureCb);
+      ASYNC_FN(EIO_CapturePreview);
+      ASYNC_CB(EIO_CapturePreviewCb);
       std::string getPort(){return this->port_;};
       std::string getModel(){return this->model_;};
       void setCamera(Camera *camera){this->camera_=camera;};

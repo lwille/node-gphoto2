@@ -1,5 +1,6 @@
-#include "binding.h"
-
+#include <cstdlib>
+#include <string>
+#include <gphoto2/gphoto2-camera.h>
 #include <time.h>
 #include <fcntl.h>
 #include <stdlib.h>

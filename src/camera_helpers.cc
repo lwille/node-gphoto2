@@ -3,7 +3,6 @@
 #include <sstream>
 
 
-#include "cvv8/v8-convert.hpp"
 namespace cv = cvv8;
 Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget) {
   HandleScope scope;

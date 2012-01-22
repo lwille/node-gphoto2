@@ -1,10 +1,6 @@
-#include "binding.h"
 #include "camera.h"
-#include <node_buffer.h>
 #include <sstream>
 #include <gphoto2/gphoto2-widget.h>
-#include <list>
-
 
 using namespace v8;
 using namespace node;
@@ -54,21 +50,21 @@ GPCamera::TakePicture(const Arguments& args) {
   take_picture_request *picture_req = new take_picture_request();
   picture_req->cb = Persistent<Function>::New(cb);
   picture_req->camera = camera->getCamera();
-  picture_req->context = camera->gphoto_->getContext();
-  eio_custom(EIO_TakePicture, EIO_PRI_DEFAULT, EIO_TakePictureCb, picture_req);
-  ev_ref(EV_DEFAULT_UC);
+  picture_req->context = gp_context_new();
+  DO_ASYNC(picture_req, EIO_TakePicture, EIO_TakePictureCb);
+  // eio_custom(EIO_TakePicture, EIO_PRI_DEFAULT, EIO_TakePictureCb, picture_req);
+  // ev_ref(EV_DEFAULT_UC);
   return Undefined();
 }
 void
-GPCamera::EIO_TakePicture(eio_req *req){
+GPCamera::EIO_TakePicture(uv_work_t *req){
   take_picture_request *picture_req = (take_picture_request *)req->data;
   printf("Taking picture\n");
   capture_to_memory(picture_req->camera, picture_req->context, &picture_req->data, static_cast<long unsigned int *>(&picture_req->length));
 }
-int
-GPCamera::EIO_TakePictureCb(eio_req *req){
+void
+GPCamera::EIO_TakePictureCb(uv_work_t *req){
   HandleScope scope;
-  ev_unref(EV_DEFAULT_UC);
   take_picture_request *picture_req = (take_picture_request *)req->data;
   
   node::Buffer* buffer = node::Buffer::New((char*)picture_req->data, picture_req->length);
@@ -77,10 +73,9 @@ GPCamera::EIO_TakePictureCb(eio_req *req){
   argv[0] = buffer->handle_;
   
   picture_req->cb->Call(Context::GetCurrent()->Global(), 1, argv);
-  
   picture_req->cb.Dispose();
+  gp_context_unref(picture_req->context);
   delete picture_req;
-  return 0;
 }
 
 // Return available configuration widgets as a list in the form
@@ -96,10 +91,13 @@ GPCamera::GetConfig(const Arguments& args) {
   get_config_request *config_req = new get_config_request();
   config_req->cameraObject = camera;
   config_req->camera = camera->getCamera();
-  config_req->context = camera->gphoto_->getContext();
+  config_req->context = gp_context_new();
   config_req->cb = Persistent<Function>::New(cb);
-  eio_custom(EIO_GetConfig, EIO_PRI_DEFAULT, EIO_GetConfigCb, config_req);
-  ev_ref(EV_DEFAULT_UC);
+
+  DO_ASYNC(config_req, EIO_GetConfig, EIO_GetConfigCb);
+  
+  //eio_custom(EIO_GetConfig, EIO_PRI_DEFAULT, EIO_GetConfigCb, config_req);
+  //ev_ref(EV_DEFAULT_UC);
   return Undefined();  
 }
 
@@ -129,18 +127,26 @@ namespace cvv8 {
 
 
 
-void GPCamera::EIO_GetConfig(eio_req *req){
+void GPCamera::EIO_GetConfig(uv_work_t *req){
   get_config_request *config_req = (get_config_request*)req->data;
   int ret;
   
   
   ret = gp_camera_get_config(config_req->camera, &config_req->root, config_req->context);
-  if(ret<GP_OK){config_req->ret=ret;return;}
-  ret = enumConfig(config_req, config_req->root, config_req->settings);
-
-  config_req->ret = ret;
+   if(ret == GP_ERROR_CAMERA_BUSY){
+      usleep(25 * 1000);
+      printf("retrying EIO_GetConfig after 25ms\n");
+      EIO_GetConfig(req);
+    }else if(ret < GP_OK){
+      printf("gp_camera_get_config returned %d\n", ret);
+      usleep(25 * 1000);
+      EIO_GetConfig(req);      
+    }else{
+      ret = enumConfig(config_req, config_req->root, config_req->settings);
+      config_req->ret = ret;
+    }
 }
-int GPCamera::EIO_GetConfigCb(eio_req *req){
+void GPCamera::EIO_GetConfigCb(uv_work_t *req){
   HandleScope scope;
   get_config_request *config_req = (get_config_request*)req->data;
   
@@ -161,9 +167,9 @@ int GPCamera::EIO_GetConfigCb(eio_req *req){
   gp_widget_free(config_req->root);
   config_req->cb.Dispose();  
   config_req->cameraObject->Unref();
+  gp_context_unref(config_req->context);
+  
   delete config_req;
-  ev_unref(EV_DEFAULT_UC);
-  return 0;
 }
 Handle<Value>
 GPCamera::GetConfigValue(const Arguments& args) {
@@ -183,8 +189,12 @@ GPCamera::GetConfigValue(const Arguments& args) {
 
   std::list<std::string> keys(cv::CastFromJS<std::list<std::string> >(js_keys));
   config_req->keys = keys;
-  eio_custom(EIO_GetConfigValue, EIO_PRI_DEFAULT, EIO_GetConfigValueCb, config_req);
-  ev_ref(EV_DEFAULT_UC);
+  
+  DO_ASYNC(config_req, EIO_GetConfigValue, EIO_GetConfigValueCb);
+  
+  
+//  eio_custom(EIO_GetConfigValue, EIO_PRI_DEFAULT, EIO_GetConfigValueCb, config_req);
+//  ev_ref(EV_DEFAULT_UC);
   
   //printf("Retrieving %d settings\n", keys->Length());
   
@@ -194,27 +204,37 @@ GPCamera::GetConfigValue(const Arguments& args) {
 
 
 void
-GPCamera::EIO_GetConfigValue(eio_req *req){
+GPCamera::EIO_GetConfigValue(uv_work_t *req){
+  printf("EIO_GetConfigValue\n");
   int ret;
   get_config_request *config_req = (get_config_request *)req->data;
   CameraWidget *root;
   for(StringList::iterator i=config_req->keys.begin(); i!=config_req->keys.end(); ++i){
     CameraWidget *widget = NULL;
     ret = getConfigWidget(config_req, *i, &widget, &root);
-    TreeNode node;
-    node.context = config_req->context;
-    if(ret == GP_OK){
-      node.value = widget;
+    if(ret == GP_ERROR_CAMERA_BUSY){
+      usleep(25 * 1000);
+      printf("retrying getConfigWidget after 25ms\n");
+      EIO_GetConfigValue(req);
+    }else if(ret < GP_OK){
+      printf("getConfigWidget returned %d\n", ret);
+      usleep(25 * 1000);
+      EIO_GetConfigValue(req);      
     }else{
-      node.value = NULL;
+      TreeNode node;
+      node.context = config_req->context;
+      if(ret == GP_OK){
+        node.value = widget;
+      }else{
+        node.value = NULL;
+      }
+      config_req->settings[*i] = node;    
     }
-    config_req->settings[*i] = node;    
   }
 }
-int
-GPCamera::EIO_GetConfigValueCb(eio_req *req){
+void
+GPCamera::EIO_GetConfigValueCb(uv_work_t *req){
   HandleScope scope;
-  ev_unref(EV_DEFAULT_UC);
   get_config_request *config_req = (get_config_request *)req->data;
   
   Handle<Value> argv[2];
@@ -233,8 +253,9 @@ GPCamera::EIO_GetConfigValueCb(eio_req *req){
   config_req->cb.Dispose();
 
   config_req->cameraObject->Unref();
+  gp_context_unref(config_req->context);
+  
   delete config_req;  
-  return 0;
 }
 
 Handle<Value>
@@ -248,22 +269,23 @@ GPCamera::SetConfigValue(const Arguments& args) {
   REQ_STR_ARG(0, key);
   REQ_STR_ARG(0, value);
   REQ_FUN_ARG(1, cb);
+  DO_ASYNC(config_req, EIO_SetConfigValue, EIO_SetConfigValueCb);
   
   return Undefined();
 }
 void
-GPCamera::EIO_SetConfigValue(eio_req *req){
+GPCamera::EIO_SetConfigValue(uv_work_t *req){
   get_config_request *config_req = (get_config_request *)req->data;
   
 }
-int
-GPCamera::EIO_SetConfigValueCb(eio_req *req){
+void
+GPCamera::EIO_SetConfigValueCb(uv_work_t *req){
   HandleScope scope;
-  ev_unref(EV_DEFAULT_UC);
-
   get_config_request *config_req = (get_config_request *)req->data;
   config_req->cameraObject->Unref();
-  return 0;
+  gp_context_unref(config_req->context);
+  delete config_req;
+  
 }
 
 Handle<Value>
@@ -303,30 +325,38 @@ GPCamera::GetPreview(const Arguments& args) {
 
   preview_req->cb = Persistent<Function>::New(cb);
   preview_req->camera = camera->getCamera();
-  preview_req->context = camera->gphoto_->getContext();
+  preview_req->context = gp_context_new();
   preview_req->cameraObject = camera;
   
-  eio_custom(EIO_CapturePreview, EIO_PRI_DEFAULT, EIO_CapturePreviewCb, preview_req);
-  ev_ref(EV_DEFAULT_UC);
+  DO_ASYNC(preview_req, EIO_CapturePreview, EIO_CapturePreviewCb);
+//  eio_custom(EIO_CapturePreview, EIO_PRI_DEFAULT, EIO_CapturePreviewCb, preview_req);
+//  ev_ref(EV_DEFAULT_UC);
   return scope.Close(Undefined());
     
 }
-void GPCamera::EIO_CapturePreview(eio_req *req){
+void GPCamera::EIO_CapturePreview(uv_work_t *req){
   int ret;
 
   take_picture_request *preview_req = (take_picture_request*) req->data;
   
   RETURN_ON_ERROR(preview_req, gp_file_new, (&preview_req->file), {});
-  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {gp_file_free(preview_req->file);});
+  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {
+    if(preview_req->ret == GP_ERROR_CAMERA_BUSY) {
+      usleep(25 * 1000);
+      printf("Retrying gp_capture_preview after 25ms\n");
+      EIO_CapturePreview(req);
+    }else{
+      gp_file_free(preview_req->file);
+    }
+  });
   unsigned long int length;
   RETURN_ON_ERROR(preview_req, gp_file_get_data_and_size, (preview_req->file, &preview_req->data, &length), {gp_file_free(preview_req->file);});
   preview_req->length = (size_t)length;
   
 }
 
-int GPCamera::EIO_CapturePreviewCb(eio_req *req){
+void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
   HandleScope scope;
-  ev_unref(EV_DEFAULT_UC);
   int ret;
   CameraFile *file;
   take_picture_request *preview_req = (take_picture_request*) req->data;
@@ -351,8 +381,9 @@ int GPCamera::EIO_CapturePreviewCb(eio_req *req){
   preview_req->cb.Dispose();
   if(preview_req->ret == GP_OK)  gp_file_free(preview_req->file);
   preview_req->cameraObject->Unref();
+  gp_context_unref(preview_req->context);
+  
   delete preview_req;  
-  return 0;  
 }
 
 bool

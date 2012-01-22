@@ -1,10 +1,6 @@
 #ifndef __GPHOTO_H
 #define __GPHOTO_H
-#include <gphoto2/gphoto2-camera.h>
-#include <cstdlib>
-#include <node.h>
-#include <node_buffer.h>
-#include <string.h>
+#include "binding.h"
 using namespace v8;
 #define OLDLIB
 class GPCamera;
@@ -20,9 +16,10 @@ class GPhoto2: public node::ObjectWrap {
       GPhoto2             *gphoto;
       CameraList	        *list;
       Persistent<Object>	This;
+      GPContext           *context;
   };
-  static void EIO_List(eio_req *req);
-  static int EIO_ListCb(eio_req *req);  
+  static void EIO_List(uv_work_t *req);
+  static void EIO_ListCb(uv_work_t *req);  
   public:
     static Persistent<FunctionTemplate> constructor_template;
     Camera * _camera;
