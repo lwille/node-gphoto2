@@ -15,7 +15,7 @@ def configure(conf):
   conf.check_tool("node_addon")
   conf.check_cfg(package='libgphoto2', args='--cflags --libs', uselib_store='LIBGPHOTO2')
   conf.check_cfg(package='libgphoto2_port', args='--cflags --libs', uselib_store='LIBGPHOTO2PORT')
-  conf.env.append_value('CXXFLAGS', ['-Wall', '-Wno-unused-variable', '-Qunused-arguments'])
+  conf.env.append_value('CXXFLAGS', ['-Wall', '-Qunused-arguments'])
 
 def build(bld):
   if(exists('src/preview.cc')):

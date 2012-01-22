@@ -8,11 +8,11 @@
 
 #ifdef OLDLIB
 static void error_func (GPContext *context, const char *format, va_list args, void *data) {
-    fprintf  (stdout, "\n");
-    fprintf  (stdout, "*** Contexterror ***              \n");
-    vfprintf (stdout, format, args);
-    fprintf  (stdout, "\n");
-    fflush   (stdout);
+  fprintf  (stdout, "\n");
+  fprintf  (stdout, "*** Contexterror ***              \n");
+  vfprintf (stdout, format, args);
+  fprintf  (stdout, "data:%p\n", data);
+  fflush   (stdout);
 }
 #else
 static void
@@ -25,7 +25,6 @@ int main(){
   CameraFile *file;
   Camera *camera;
   GPContext *context = gp_context_new();
-  
   gp_context_set_error_func (context, error_func, NULL);
 	gp_context_set_status_func (context, error_func, NULL);
 	
@@ -34,8 +33,18 @@ int main(){
   if(ret < GP_OK) return -1;
   ret = gp_camera_init (camera, context);
   if(ret < GP_OK) return -1;
-  const char* data;
-  size_t length;
+  
+  CameraWidget *child;
+  CameraWidget *rootconfig;
+  ret = gp_camera_get_config(camera, &rootconfig, context);
+  if(ret < GP_OK) return -1;
+  
+  ret = gp_widget_get_child_by_name(rootconfig, "autofocusdrive", &child);
+  if(ret < GP_OK) return -1;
+  
+  
+//  const char* data;
+//  size_t length;
   time_t last=time(NULL);
   int cnt = 0;
   char* filename = (char*)malloc(128);
