@@ -2,7 +2,7 @@
 
 #include <time.h>
 #include <fcntl.h>
-
+#include <stdlib.h>
 #define OLDLIB
 
 #ifdef OLDLIB
@@ -37,6 +37,7 @@ int main(){
   size_t length;
   time_t last=time(NULL);
   int cnt = 0;
+  char* filename = (char*)malloc(128);
   for(unsigned int i=0; i<20000; i++) {
     time_t now = time(NULL);
     if(now-last >= 1){
@@ -50,17 +51,20 @@ int main(){
       cnt++;
     }
     last = now;
-    ret = gp_file_new(&file);
+    sprintf(filename, "./frames/frame%.05d.jpg", i);
+    fd = open(filename,O_WRONLY|O_CREAT,0660);
+    ret = gp_file_new_from_fd (&file, fd);
+//    ret = gp_file_new(&file);
     if(ret< GP_OK){ printf("gp_file_new returned %d\n", ret); break;}
     ret = gp_camera_capture_preview(camera, file, context);
     if(ret< GP_OK){ printf("gp_camera_capture_preview returned %d\n", ret); break;}
-    ret = gp_file_get_data_and_size(file, &data, &length);
+//    ret = gp_file_get_data_and_size(file, &data, &length);
     if(ret< GP_OK){ printf("gp_file_get_data_and_size returned %d\n", ret); break;}
-    if((data[0] & 0xFF) != 0xFF || (data[1] & 0xD8) != 0xD8){printf("invalid JPEG header!\n");break;}
+//    if((data[0] & 0xFF) != 0xFF || (data[1] & 0xD8) != 0xD8){printf("invalid JPEG header!\n");break;}
     gp_file_free(file);    
     close(fd);
   }
-
+  free(filename);
   gp_camera_exit(camera, context);
   gp_camera_free(camera);
   printf("\n\n\n");
