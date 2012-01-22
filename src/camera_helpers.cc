@@ -33,17 +33,17 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 		break;
 	}
 	case GP_WIDGET_RANGE: {	/* float		*/
-		float	f, t,b,s;
+		float	f, max,min,step;
 
-		ret = gp_widget_get_range (widget, &b, &t, &s);
+		ret = gp_widget_get_range (widget, &min, &max, &step);
 		if (ret == GP_OK)
 			ret = gp_widget_get_value (widget, &f);
 		if (ret == GP_OK) {
 		  value->Set(cv::CastToJS("type"), cv::CastToJS("range"));
       value->Set(cv::CastToJS("value"), cv::CastToJS(f));
-      value->Set(cv::CastToJS("max"), cv::CastToJS(t));
-      value->Set(cv::CastToJS("min"), cv::CastToJS(b));
-      value->Set(cv::CastToJS("set"), cv::CastToJS(s));
+      value->Set(cv::CastToJS("max"), cv::CastToJS(max));
+      value->Set(cv::CastToJS("min"), cv::CastToJS(min));
+      value->Set(cv::CastToJS("step"), cv::CastToJS(step));
       break;
 		} else {
 			gp_context_error (context, "Failed to retrieve values of range widget %s.", label);
