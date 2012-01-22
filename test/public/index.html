@@ -17,7 +17,7 @@
         image = new Image()
         onload = ()->
           context.drawImage(image, 0, 0, canvas.width, canvas.height)
-          image.src = '/preview?'+Date.parse(new Date())
+          image.src = '/preview'+Date.parse(new Date())
         image.src = '/preview'
         $(image).bind 'load', onload
         onload()
