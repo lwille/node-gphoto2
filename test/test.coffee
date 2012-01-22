@@ -4,7 +4,6 @@ process.title = 'node-gphoto2 test program'
 GPhoto = require "../main"
 fs     = require "fs"
 gphoto = new GPhoto.GPhoto2()
-http   = require 'http'
 express = require 'express'
 _      = require 'underscore'
 
@@ -29,12 +28,14 @@ gphoto.list (cameras)->
   camera.getConfig (er, settings)->
     console.log settings
 
-app = express.createServer()
+app = express()
 
+console.log __dirname
 app.use express.static __dirname + '/public'
 
-app.register '.html', require('jade')
-app.get '/', (req, res)->res.render 'index.html'
+app.engine '.html', require('jade')
+app.get '/', (req, res)->
+  res.render 'index.html'
 
 logRequests = ()->
   d=Date.parse(new Date())/1000
@@ -57,7 +58,7 @@ app.get '/settings', (req, res)->
     camera.getConfig (er, settings)->
       res.send JSON.stringify(settings)
   
-app.get '/preview', (req, res)->
+app.get '/preview*', (req, res)->
   unless camera
     res.send 404, 'Camera not connected'
   else
