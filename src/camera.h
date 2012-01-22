@@ -86,8 +86,6 @@
       static Handle<Value> GetPreview(const Arguments& args);
       ASYNC_FN(EIO_GetConfig);
       ASYNC_CB(EIO_GetConfigCb);
-      ASYNC_FN(EIO_GetConfigValue);
-      ASYNC_CB(EIO_GetConfigValueCb);
       ASYNC_FN(EIO_SetConfigValue);
       ASYNC_CB(EIO_SetConfigValueCb);
       ASYNC_FN(EIO_TakePicture);

@@ -34,7 +34,6 @@ GPCamera::Initialize(Handle<Object> target) {
     constructor_template->SetClassName(String::NewSymbol("Camera"));
 
     ADD_PROTOTYPE_METHOD(camera, getConfig, GetConfig);
-    ADD_PROTOTYPE_METHOD(camera, getConfigValue, GetConfigValue);
     ADD_PROTOTYPE_METHOD(camera, setConfigValue, SetConfigValue);
     ADD_PROTOTYPE_METHOD(camera, takePicture, TakePicture);
     ADD_PROTOTYPE_METHOD(camera, getPreview, GetPreview);
@@ -170,92 +169,6 @@ void GPCamera::EIO_GetConfigCb(uv_work_t *req){
   gp_context_unref(config_req->context);
   
   delete config_req;
-}
-Handle<Value>
-GPCamera::GetConfigValue(const Arguments& args) {
-  HandleScope scope;
-  GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
-  camera->Ref();
-
-  REQ_ARR_ARG(0, js_keys);
-  REQ_FUN_ARG(1, cb);
-
-  get_config_request *config_req = new get_config_request();
-  config_req->cameraObject = camera;
-  config_req->camera       = camera->getCamera();
-  config_req->cb = Persistent<Function>::New(cb);
-  
-  // transform keys Array into a stl::deque
-
-  std::list<std::string> keys(cv::CastFromJS<std::list<std::string> >(js_keys));
-  config_req->keys = keys;
-  
-  DO_ASYNC(config_req, EIO_GetConfigValue, EIO_GetConfigValueCb);
-  
-  
-//  eio_custom(EIO_GetConfigValue, EIO_PRI_DEFAULT, EIO_GetConfigValueCb, config_req);
-//  ev_ref(EV_DEFAULT_UC);
-  
-  //printf("Retrieving %d settings\n", keys->Length());
-  
-  return Undefined();
-}
-
-
-
-void
-GPCamera::EIO_GetConfigValue(uv_work_t *req){
-  printf("EIO_GetConfigValue\n");
-  int ret;
-  get_config_request *config_req = (get_config_request *)req->data;
-  CameraWidget *root;
-  for(StringList::iterator i=config_req->keys.begin(); i!=config_req->keys.end(); ++i){
-    CameraWidget *widget = NULL;
-    ret = getConfigWidget(config_req, *i, &widget, &root);
-    if(ret == GP_ERROR_CAMERA_BUSY){
-      usleep(25 * 1000);
-      printf("retrying getConfigWidget after 25ms\n");
-      EIO_GetConfigValue(req);
-    }else if(ret < GP_OK){
-      printf("getConfigWidget returned %d\n", ret);
-      usleep(25 * 1000);
-      EIO_GetConfigValue(req);      
-    }else{
-      TreeNode node;
-      node.context = config_req->context;
-      if(ret == GP_OK){
-        node.value = widget;
-      }else{
-        node.value = NULL;
-      }
-      config_req->settings[*i] = node;    
-    }
-  }
-}
-void
-GPCamera::EIO_GetConfigValueCb(uv_work_t *req){
-  HandleScope scope;
-  get_config_request *config_req = (get_config_request *)req->data;
-  
-  Handle<Value> argv[2];
-  
-  
-  argv[0] = Undefined();
-  Local<Object> values = Object::New();
-  for(A<TreeNode>::Tree::iterator i  = config_req->settings.begin(); i != config_req->settings.end(); ++i){
-    printf("Getting value for %s\n", (*i).first.c_str());
-    TreeNode node =  (*i).second;
-    values->Set(cv::CastToJS((*i).first), getWidgetValue(config_req->context, node.value));
-  }
-  argv[1] = values;
-  
-  config_req->cb->Call(Context::GetCurrent()->Global(), 2, argv);
-  config_req->cb.Dispose();
-
-  config_req->cameraObject->Unref();
-  gp_context_unref(config_req->context);
-  
-  delete config_req;  
 }
 
 Handle<Value>
