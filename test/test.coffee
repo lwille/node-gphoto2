@@ -25,13 +25,16 @@ gphoto.list (cameras)->
   process.exit(-1) unless camera
   # retrieve available configuration settings
   console.log "loading #{camera.model} settings"
-  camera.getConfig (er, settings)->
-    console.log settings
+  camera.setConfigValue "uilock", 0, (er)->
+    console.log er if er
+    camera.getConfig (er, settings)->
+      console.log settings
 
 app = express()
 
 console.log __dirname
 app.use express.static __dirname + '/public'
+app.use express.bodyParser()
 
 app.engine '.html', require('jade')
 app.get '/', (req, res)->
@@ -48,8 +51,16 @@ logRequests = ()->
     console.log("#{fps} fps") if fps
 
 # save configuration
-app.put '/settings*', (req, res)->
-
+app.put '/settings/:name', (req, res)->
+  unless camera
+    res.send 404, 'Camera not connected'
+  else
+    camera.setConfigValue req.params.name, req.body.newValue, (er)->
+      if er
+        res.send 404, JSON.stringify(er)
+      else
+        res.send 200
+    
 # get configuration
 app.get '/settings', (req, res)->
   unless camera

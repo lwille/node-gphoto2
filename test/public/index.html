@@ -31,20 +31,27 @@
       enumSettings: (settings, gui)=>
         unless gui
           gui = @gui
-        for key of settings
-          val =  settings[key]
+        $.each settings, (key, val)=>
           if val.type in ['window', 'section']
             @enumSettings val.children, gui.addFolder val.label
           else
             foo ={}
             foo[val.label] = val.value
-            if val.type is 'string' or val.type is 'toggle'
-              gui.add foo, val.label
+            changeFn = (newValue)->
+                console.log val.label, "changed to", newValue
+                request.put "/settings/#{key}", newValue:newValue, (response)->
+                  console.log response
+            if val.type is 'string'
+              gui.add(foo, val.label).onChange changeFn
+            else if val.type is 'toggle'
+              foo[val.label] = val.value != 0
+              gui.add(foo, val.label).onChange (newValue)->
+                request.put "/settings/#{key}", newValue: (if newValue then 1 else 0), (response)->
+                  console.log response
             else if val.type is 'choice'
-              gui.add foo, val.label, val.choices
+              gui.add(foo, val.label, val.choices).onChange(changeFn)
             else if val.type is 'range'
-              gui.add foo, val.label, val.min, val.max
-              console.log val.label, "is a range"
+              gui.add(foo, val.label, val.min, val.max, val.step).onChange(changeFn)
               
         
       displaySettings: ()=>
