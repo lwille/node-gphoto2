@@ -13,13 +13,15 @@ GPCamera::GPCamera(Handle<External> js_gphoto, std::string model, std::string po
   GPhoto2 *gphoto = static_cast<GPhoto2*>(js_gphoto->Value());
   this->gphoto = Persistent<External>::New(js_gphoto);
   this->gphoto_ = gphoto;
-  pthread_mutex_init(&cameraMutex, NULL);
+  pthread_mutex_init(&this->cameraMutex, NULL);
 }
 GPCamera::~GPCamera(){
   printf("Camera destructor\n");
   this->gphoto_->closeCamera(this);
   this->gphoto.Dispose();
   this->close();
+  
+  pthread_mutex_destroy(&this->cameraMutex);
 }
 
 void
