@@ -33,7 +33,7 @@
   class GPCamera : public node::ObjectWrap {
     pthread_mutex_t cameraMutex;
     void lock(){pthread_mutex_lock(&this->cameraMutex);};
-    void unlock(){pthread_mutex_lock(&this->cameraMutex);};
+    void unlock(){pthread_mutex_unlock(&this->cameraMutex);};
 
     std::string model_;
     std::string port_;

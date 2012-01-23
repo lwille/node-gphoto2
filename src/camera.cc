@@ -61,9 +61,8 @@ GPCamera::TakePicture(const Arguments& args) {
 void
 GPCamera::EIO_TakePicture(uv_work_t *req){
   take_picture_request *picture_req = (take_picture_request *)req->data;
+
   picture_req->cameraObject->lock();
-  
-  printf("Taking picture\n");
   capture_to_memory(picture_req->camera, picture_req->context, &picture_req->data, static_cast<long unsigned int *>(&picture_req->length));
   picture_req->cameraObject->unlock();
 }
@@ -135,16 +134,17 @@ namespace cvv8 {
 void GPCamera::EIO_GetConfig(uv_work_t *req){
   get_config_request *config_req = (get_config_request*)req->data;
   int ret;
+
   config_req->cameraObject->lock();
-  
   ret = gp_camera_get_config(config_req->camera, &config_req->root, config_req->context);
+  config_req->cameraObject->unlock();
+
   if(ret < GP_OK){
     config_req->ret = ret;
   }else{
     ret = enumConfig(config_req, config_req->root, config_req->settings);
     config_req->ret = ret;
   }
-  config_req->cameraObject->unlock();
 }
 void GPCamera::EIO_GetConfigCb(uv_work_t *req){
   HandleScope scope;
@@ -214,8 +214,7 @@ GPCamera::EIO_SetConfigValue(uv_work_t *req){
   
   config_req->cameraObject->lock();
   config_req->ret = setWidgetValue(config_req);
-  
-config_req->cameraObject->unlock();
+  config_req->cameraObject->unlock();
 }
 void
 GPCamera::EIO_SetConfigValueCb(uv_work_t *req){
@@ -283,13 +282,15 @@ GPCamera::GetPreview(const Arguments& args) {
 void GPCamera::EIO_CapturePreview(uv_work_t *req){
   take_picture_request *preview_req = (take_picture_request*) req->data;
   
-  preview_req->cameraObject->lock();
   RETURN_ON_ERROR(preview_req, gp_file_new, (&preview_req->file), {});
-  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {gp_file_free(preview_req->file);});
+
+  preview_req->cameraObject->lock();
+  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {gp_file_free(preview_req->file);preview_req->cameraObject->unlock();});
+  preview_req->cameraObject->unlock();
+
   unsigned long int length;
   RETURN_ON_ERROR(preview_req, gp_file_get_data_and_size, (preview_req->file, &preview_req->data, &length), {gp_file_free(preview_req->file);});
   preview_req->length = (size_t)length;
-  preview_req->cameraObject->unlock();
 }
 
 void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
