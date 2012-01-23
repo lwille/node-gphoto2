@@ -64,9 +64,6 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 	}
 	case GP_WIDGET_DATE:  {		/* int			*/
 		int	t;
-		time_t	xtime;
-		struct tm *xtm;
-		char	timebuf[200];
 
 		ret = gp_widget_get_value (widget, &t);
 		if (ret != GP_OK) {
@@ -121,6 +118,36 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 		break;
 	} 
   return scope.Close(value);
+}
+
+int GPCamera::setWidgetValue(set_config_request *req){
+  int ret;
+  CameraWidget *child;
+  CameraWidget *rootconfig;
+  ret = gp_camera_get_config(req->camera, &rootconfig, req->context);
+  if(ret < GP_OK) return ret;
+  
+  ret = gp_widget_get_child_by_name(rootconfig, req->key.c_str(), &child);
+  if(ret < GP_OK) return ret;
+  
+  switch(req->valueType){
+    case set_config_request::String :
+      ret = gp_widget_set_value(child, req->strValue.c_str());      
+    break;
+    case set_config_request::Integer :
+      ret = gp_widget_set_value(child, &req->intValue);
+    break;
+    case set_config_request::Float :
+      ret = gp_widget_set_value(child, &req->fltValue);      
+    break;
+  }
+  if(ret < GP_OK) return ret;
+
+  ret = gp_camera_set_config (req->camera, rootconfig, req->context);
+  if(ret < GP_OK) return ret;
+  printf("stored settings=%d\n", ret);
+  gp_widget_free(rootconfig);
+  return ret;
 }
 
 int GPCamera::getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig){

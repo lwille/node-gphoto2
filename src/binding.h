@@ -9,21 +9,28 @@
 #include <string>
 #include <list>
 #include <map>
-#include "cvv8/v8-convert.hpp"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+#include "cvv8/v8-convert.hpp"
+#pragma clang diagnostic pop
 
 
 #define ASYNC_FN(NAME)\
-  static void NAME(uv_work_t* req)
+static void NAME(uv_work_t* req);
 
 #define ASYNC_CB ASYNC_FN
 
 #define DO_ASYNC(BATON,ASYNC,AFTER)\
-  uv_work_t* req = new uv_work_t;\
+  uv_work_t* req = new uv_work_t();\
   req->data = BATON;\
   uv_queue_work(uv_default_loop(), req, ASYNC, AFTER);
 
-
+#define REQ_ARGS(N)                                                     \
+  if (args.Length() < (N))                                              \
+    return ThrowException(Exception::TypeError(                         \
+                             String::New("Expected " #N "arguments")));
+                             
 #define ADD_PROTOTYPE_METHOD(class, name, method) \
 class ## _ ## name ## _symbol = NODE_PSYMBOL(#name); \
 NODE_SET_PROTOTYPE_METHOD(constructor_template, #name, method);
@@ -54,6 +61,11 @@ return ThrowException(Exception::TypeError( \
 String::New("Argument " #I " must be a string"))); \
 String::Utf8Value VAR(args[I]->ToString());
 
+#define REQ_INT_ARG(I, VAR)                                             \
+  if (args.Length() <= (I) || !args[I]->IsInt32())                      \
+    return ThrowException(Exception::TypeError(                         \
+                  String::New("Argument " #I " must be an integer")));  \
+  int VAR = args[I]->Int32Value();
 
 #define RETURN_ON_ERROR(REQ, FNAME, ARGS, CLEANUP)\
 REQ->ret = FNAME ARGS;\

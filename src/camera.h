@@ -31,6 +31,10 @@
   static Persistent<String> camera_takePicture_symbol;
   static Persistent<String> camera_getPreview_symbol;
   class GPCamera : public node::ObjectWrap {
+    pthread_mutex_t cameraMutex;
+    void lock(){pthread_mutex_lock(&this->cameraMutex);};
+    void unlock(){pthread_mutex_unlock(&this->cameraMutex);};
+
     std::string model_;
     std::string port_;
     Persistent<External> gphoto;
@@ -61,22 +65,26 @@
     };
     struct set_config_request {
       Persistent<Function> cb;
-      GPCamera *camera;
+      GPCamera  *cameraObject;
+      Camera    *camera;
+      GPContext *context;
       std::string key;
-      std::string strValue;
+      enum {String,Float,Integer} valueType;
+      float fltValue;
       int intValue;
+      std::string strValue;
       int ret;
     };
     static int enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode>::Tree &tree);
     static int getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig);
-    
+    static int setWidgetValue(set_config_request *req);
     bool close();
     
     public:
-      static Handle<Value> getWidgetValue(GPContext *context, CameraWidget *widget);
-      static Persistent<FunctionTemplate> constructor_template;
       GPCamera(Handle<External> js_gphoto, std::string  model, std::string  port);
       ~GPCamera();
+      static Handle<Value> getWidgetValue(GPContext *context, CameraWidget *widget);
+      static Persistent<FunctionTemplate> constructor_template;
       static void Initialize(Handle<Object> target);
       static Handle<Value> New(const Arguments& args);
       static Handle<Value> GetConfig(const Arguments& args);

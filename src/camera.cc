@@ -13,6 +13,7 @@ GPCamera::GPCamera(Handle<External> js_gphoto, std::string model, std::string po
   GPhoto2 *gphoto = static_cast<GPhoto2*>(js_gphoto->Value());
   this->gphoto = Persistent<External>::New(js_gphoto);
   this->gphoto_ = gphoto;
+  pthread_mutex_init(&cameraMutex, NULL);
 }
 GPCamera::~GPCamera(){
   printf("Camera destructor\n");
@@ -58,8 +59,11 @@ GPCamera::TakePicture(const Arguments& args) {
 void
 GPCamera::EIO_TakePicture(uv_work_t *req){
   take_picture_request *picture_req = (take_picture_request *)req->data;
+  picture_req->cameraObject->lock();
+  
   printf("Taking picture\n");
   capture_to_memory(picture_req->camera, picture_req->context, &picture_req->data, static_cast<long unsigned int *>(&picture_req->length));
+  picture_req->cameraObject->unlock();
 }
 void
 GPCamera::EIO_TakePictureCb(uv_work_t *req){
@@ -129,21 +133,16 @@ namespace cvv8 {
 void GPCamera::EIO_GetConfig(uv_work_t *req){
   get_config_request *config_req = (get_config_request*)req->data;
   int ret;
-  
+  config_req->cameraObject->lock();
   
   ret = gp_camera_get_config(config_req->camera, &config_req->root, config_req->context);
-   if(ret == GP_ERROR_CAMERA_BUSY){
-      usleep(25 * 1000);
-      printf("retrying EIO_GetConfig after 25ms\n");
-      EIO_GetConfig(req);
-    }else if(ret < GP_OK){
-      printf("gp_camera_get_config returned %d\n", ret);
-      usleep(25 * 1000);
-      EIO_GetConfig(req);      
-    }else{
-      ret = enumConfig(config_req, config_req->root, config_req->settings);
-      config_req->ret = ret;
-    }
+  if(ret < GP_OK){
+    config_req->ret = ret;
+  }else{
+    ret = enumConfig(config_req, config_req->root, config_req->settings);
+    config_req->ret = ret;
+  }
+  config_req->cameraObject->unlock();
 }
 void GPCamera::EIO_GetConfigCb(uv_work_t *req){
   HandleScope scope;
@@ -176,25 +175,58 @@ GPCamera::SetConfigValue(const Arguments& args) {
   HandleScope scope;
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
-  set_config_request *config_req = new set_config_request();
   
-  config_req->camera = camera;
+  REQ_ARGS(3);
   REQ_STR_ARG(0, key);
-  REQ_STR_ARG(0, value);
-  REQ_FUN_ARG(1, cb);
+  REQ_FUN_ARG(2, cb);
+
+  set_config_request *config_req = new set_config_request();
+  if(args[1]->IsString()){
+    REQ_STR_ARG(1, value);
+    config_req->strValue = *value;
+    config_req->valueType = set_config_request::String;
+  }else if(args[1]->IsInt32()){
+    REQ_INT_ARG(1, value);
+    config_req->intValue = value;
+    config_req->valueType = set_config_request::Integer;
+  }else if(args[1]->IsNumber()){
+    double dblValue = args[1]->ToNumber()->Value();
+    config_req->fltValue = dblValue;
+    config_req->valueType = set_config_request::Float;
+  }else{
+    delete config_req;
+    return ThrowException(Exception::TypeError(String::New("Argument 1 invalid: String, Integer or Float value expected")));    
+  }
+  config_req->cameraObject = camera;
+  config_req->camera = camera->getCamera();
+  config_req->context = gp_context_new();
+  config_req->cb = Persistent<Function>::New(cb);
+  config_req->key = *key;
   DO_ASYNC(config_req, EIO_SetConfigValue, EIO_SetConfigValueCb);
   
   return Undefined();
 }
 void
 GPCamera::EIO_SetConfigValue(uv_work_t *req){
-  get_config_request *config_req = (get_config_request *)req->data;
+  set_config_request *config_req = (set_config_request *)req->data;
   
+  config_req->cameraObject->lock();
+  config_req->ret = setWidgetValue(config_req);
+  
+config_req->cameraObject->unlock();
 }
 void
 GPCamera::EIO_SetConfigValueCb(uv_work_t *req){
   HandleScope scope;
-  get_config_request *config_req = (get_config_request *)req->data;
+  set_config_request *config_req = (set_config_request *)req->data;
+  int argc = 0;
+  Local<Value> argv[1];
+  if(config_req->ret < GP_OK){
+    argv[0] = Integer::New(config_req->ret);
+    argc = 1;  
+  }
+  config_req->cb->Call(Context::GetCurrent()->Global(), argc, argv);
+  config_req->cb.Dispose();  
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);
   delete config_req;
@@ -218,7 +250,6 @@ GPCamera::New(const Arguments& args) {
 }  
 
 Camera* GPCamera::getCamera(){
-  GPhoto2 *gp = this->gphoto_;
     //printf("getCamera %s gphoto=%p\n", this->isOpen() ? "open" : "closed", gp);
   if(!this->isOpen()){
     printf("Opening camera %s with portList=%p abilitiesList=%p\n", this->model_.c_str(),this->gphoto_->getPortInfoList(), this->gphoto_->getAbilitiesList());
@@ -248,30 +279,19 @@ GPCamera::GetPreview(const Arguments& args) {
     
 }
 void GPCamera::EIO_CapturePreview(uv_work_t *req){
-  int ret;
-
   take_picture_request *preview_req = (take_picture_request*) req->data;
   
+  preview_req->cameraObject->lock();
   RETURN_ON_ERROR(preview_req, gp_file_new, (&preview_req->file), {});
-  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {
-    if(preview_req->ret == GP_ERROR_CAMERA_BUSY) {
-      usleep(25 * 1000);
-      printf("Retrying gp_capture_preview after 25ms\n");
-      EIO_CapturePreview(req);
-    }else{
-      gp_file_free(preview_req->file);
-    }
-  });
+  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {gp_file_free(preview_req->file);});
   unsigned long int length;
   RETURN_ON_ERROR(preview_req, gp_file_get_data_and_size, (preview_req->file, &preview_req->data, &length), {gp_file_free(preview_req->file);});
   preview_req->length = (size_t)length;
-  
+  preview_req->cameraObject->unlock();
 }
 
 void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
   HandleScope scope;
-  int ret;
-  CameraFile *file;
   take_picture_request *preview_req = (take_picture_request*) req->data;
   Handle<Value> argv[2];
   int argc = 1;
