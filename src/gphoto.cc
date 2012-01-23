@@ -71,18 +71,15 @@ Handle<Value> GPhoto2::List(const Arguments &args){
 
 
 void GPhoto2::EIO_List(uv_work_t *req){  
-    int i, ret;
+    int ret;
     list_request *list_req = (list_request *)req->data;
     GPhoto2 *gphoto = list_req->gphoto;
     GPPortInfoList *portInfoList = gphoto->getPortInfoList();
     CameraAbilitiesList *abilitiesList = gphoto->getAbilitiesList();
     gp_list_new(&list_req->list);
     ret = autodetect(list_req->list,  list_req->context, &portInfoList, &abilitiesList);
-    
-    int count = gp_list_count(list_req->list);
     gphoto->setAbilitiesList(abilitiesList);
     gphoto->setPortInfoList(portInfoList);
-    
 }
 void  GPhoto2::EIO_ListCb(uv_work_t *req){
 
