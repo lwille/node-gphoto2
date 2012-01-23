@@ -97,7 +97,6 @@
       ASYNC_FN(EIO_SetConfigValue);
       ASYNC_CB(EIO_SetConfigValueCb);
       ASYNC_FN(EIO_TakePicture);
-      ASYNC_CB(EIO_TakePictureCb);
       ASYNC_FN(EIO_CapturePreview);
       ASYNC_CB(EIO_CapturePreviewCb);
       std::string getPort(){return this->port_;};

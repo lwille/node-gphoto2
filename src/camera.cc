@@ -48,12 +48,15 @@ GPCamera::TakePicture(const Arguments& args) {
   HandleScope scope;
   printf("TakePicture %d\n", __LINE__);
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
+  camera->Ref();
+  
   REQ_FUN_ARG(0, cb);
   take_picture_request *picture_req = new take_picture_request();
   picture_req->cb = Persistent<Function>::New(cb);
   picture_req->camera = camera->getCamera();
+  picture_req->cameraObject = camera;
   picture_req->context = gp_context_new();
-  DO_ASYNC(picture_req, EIO_TakePicture, EIO_TakePictureCb);
+  DO_ASYNC(picture_req, EIO_TakePicture, EIO_CapturePreviewCb);
   // eio_custom(EIO_TakePicture, EIO_PRI_DEFAULT, EIO_TakePictureCb, picture_req);
   // ev_ref(EV_DEFAULT_UC);
   return Undefined();
@@ -65,21 +68,6 @@ GPCamera::EIO_TakePicture(uv_work_t *req){
   picture_req->cameraObject->lock();
   capture_to_memory(picture_req->camera, picture_req->context, &picture_req->data, static_cast<long unsigned int *>(&picture_req->length));
   picture_req->cameraObject->unlock();
-}
-void
-GPCamera::EIO_TakePictureCb(uv_work_t *req){
-  HandleScope scope;
-  take_picture_request *picture_req = (take_picture_request *)req->data;
-  
-  node::Buffer* buffer = node::Buffer::New((char*)picture_req->data, picture_req->length);
-  
-  Handle<Value> argv[1];
-  argv[0] = buffer->handle_;
-  
-  picture_req->cb->Call(Context::GetCurrent()->Global(), 1, argv);
-  picture_req->cb.Dispose();
-  gp_context_unref(picture_req->context);
-  delete picture_req;
 }
 
 // Return available configuration widgets as a list in the form

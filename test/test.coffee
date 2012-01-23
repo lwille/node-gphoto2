@@ -68,7 +68,18 @@ app.get '/settings', (req, res)->
   else
     camera.getConfig (er, settings)->
       res.send JSON.stringify(settings)
-  
+
+app.get '/takePicture', (req, res)->
+  unless camera
+    res.send 404, 'Camera not connected'
+  else
+    camera.takePicture (er, data)->
+      if er
+        res.send 404, er
+      else
+        res.header 'Content-Type', 'image/jpeg'
+        res.send data
+        
 app.get '/preview*', (req, res)->
   unless camera
     res.send 404, 'Camera not connected'
