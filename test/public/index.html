@@ -1,6 +1,7 @@
 <html>
 <body>
   <canvas id="preview" width="1056" height="704"></canvas>
+  <div id="downloads"></div>
   <script type="text/javascript" src="//www.google.com/jsapi"></script>
   <script type="text/javascript" src="/js/dat.gui.js"></script>
   <script type="text/javascript" src="/js/superagent.js"></script>
@@ -59,7 +60,13 @@
         foo =
           'Start live preview' : ()=>
             @startPreview()
+          'Take picture': ()=>
+            request.get 'takePicture', download:false, (res)=>
+              console.log res
+              if res.text
+                $('<a>').attr('href', res.text).text(res.text).appendTo($('#downloads')).css('display':'block')
         
+        @gui.add foo, 'Take picture'
         @gui.add foo, 'Start live preview'
         @loadSettings @enumSettings
               

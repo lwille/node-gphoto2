@@ -1,7 +1,7 @@
 #include "camera.h"
 #include <ctime>
 #include <sstream>
-
+#include <cstring>
 
 namespace cv = cvv8;
 Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget) {
@@ -224,4 +224,62 @@ int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode
 	}
   tree[uselabel] = node;
   return GP_OK;  
+}
+
+void 
+GPCamera::downloadPicture(take_picture_request *req){    
+	CameraFile *file;
+  int retval;
+	retval = gp_file_new(&file);
+	
+  std::ostringstream folder;
+  std::string name;
+  if(retval == GP_OK){
+    char *component = strtok((char*)req->path.c_str(),"/");
+    while(component){
+      char *next =strtok(NULL, "/");
+      if(next)
+        folder << "/" << component;
+      else
+        name = component;
+      component = next;
+    }
+    if(folder.str().length() == 0)
+      folder<<"/";
+  	
+  	retval = gp_camera_file_get(req->camera, folder.str().c_str(), name.c_str(),
+  		     GP_FILE_TYPE_NORMAL, file, req->context);
+    if(retval == GP_OK){
+  	  retval = gp_file_get_data_and_size (file, &req->data, &req->length);
+      if(retval == GP_OK){
+  	    retval = gp_camera_file_delete(req->camera, folder.str().c_str(), name.c_str(), req->context);
+	    }
+    }
+  	gp_file_free(file);
+  }
+  req->ret=retval;
+}
+void
+GPCamera::takePicture(take_picture_request *req) {
+	int retval;
+	CameraFilePath camera_file_path;
+
+	printf("Capturing.\n");
+
+	/* NOP: This gets overridden in the library to /capt0000.jpg */
+	strcpy(camera_file_path.folder, "/");
+	strcpy(camera_file_path.name, "foo.jpg");
+	
+	retval = gp_camera_capture(req->camera, GP_CAPTURE_IMAGE, &camera_file_path, req->context);
+	printf("  Retval: %d\n", retval);
+  std::ostringstream path;
+  if(std::string(camera_file_path.folder).compare("/") != 0)
+    path << camera_file_path.folder;
+  path << "/";
+  path << camera_file_path.name;
+  req->path = path.str();
+  req->ret = retval;
+  if(req->download){
+    downloadPicture(req);
+  }
 }

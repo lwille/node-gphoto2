@@ -47,6 +47,11 @@ return ThrowException(Exception::TypeError( \
 String::New("Argument " #I " must be a function"))); \
 Local<Function> VAR = Local<Function>::Cast(args[I]);
 
+#define REQ_OBJ_ARG(I, VAR) \
+if (args.Length() <= (I) || !args[I]->IsObject()) \
+return ThrowException(Exception::TypeError( \
+String::New("Argument " #I " must be an Object"))); \
+Local<Array> VAR = Local<Array>::Cast(args[I]);
 
 #define REQ_ARR_ARG(I, VAR) \
 if (args.Length() <= (I) || !args[I]->IsArray()) \
@@ -86,7 +91,6 @@ int open_camera (Camera ** camera, std::string model, std::string port, GPPortIn
 int  autodetect (CameraList *list, GPContext *context, GPPortInfoList **portinfolist, CameraAbilitiesList	**abilities);
 int  set_config_value_string (Camera *camera, const char *key, const char *val, GPContext *context);
 int  get_config_value_string (Camera *camera, const char *key, char **str, GPContext *context);
-void capture_to_memory(Camera *camera, GPContext *context, const char **ptr, unsigned long int *size);
 
 
 #endif

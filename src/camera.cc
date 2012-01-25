@@ -40,6 +40,7 @@ GPCamera::Initialize(Handle<Object> target) {
     ADD_PROTOTYPE_METHOD(camera, setConfigValue, SetConfigValue);
     ADD_PROTOTYPE_METHOD(camera, takePicture, TakePicture);
     ADD_PROTOTYPE_METHOD(camera, getPreview, GetPreview);
+    ADD_PROTOTYPE_METHOD(camera, downloadPicture, DownloadPicture);
     target->Set(String::NewSymbol("Camera"), constructor_template->GetFunction());
 }
 
@@ -49,10 +50,20 @@ GPCamera::TakePicture(const Arguments& args) {
   printf("TakePicture %d\n", __LINE__);
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
-  
-  REQ_FUN_ARG(0, cb);
   take_picture_request *picture_req = new take_picture_request();
-  picture_req->cb = Persistent<Function>::New(cb);
+  if(args.Length() >= 2){
+    REQ_OBJ_ARG(0, options);
+    REQ_FUN_ARG(1, cb);    
+    picture_req->cb = Persistent<Function>::New(cb);
+    Local<Value> dl = options->Get(String::New("download"));
+    if(dl->IsBoolean()){
+      picture_req->download = dl->ToBoolean()->Value();
+    }
+  }else{
+    REQ_FUN_ARG(0, cb);
+    picture_req->cb = Persistent<Function>::New(cb);    
+  }
+
   picture_req->camera = camera->getCamera();
   picture_req->cameraObject = camera;
   picture_req->context = gp_context_new();
@@ -62,14 +73,42 @@ GPCamera::TakePicture(const Arguments& args) {
   return Undefined();
 }
 void
-GPCamera::EIO_TakePicture(uv_work_t *req){
-  take_picture_request *picture_req = (take_picture_request *)req->data;
+GPCamera::EIO_TakePicture(uv_work_t *_req){
+  take_picture_request *req = (take_picture_request *)_req->data;
 
-  picture_req->cameraObject->lock();
-  capture_to_memory(picture_req->camera, picture_req->context, &picture_req->data, static_cast<long unsigned int *>(&picture_req->length));
-  picture_req->cameraObject->unlock();
+  req->cameraObject->lock();
+  takePicture(req);
+  req->cameraObject->unlock();
 }
 
+Handle<Value>
+GPCamera::DownloadPicture(const Arguments& args){
+  HandleScope scope;
+  
+  REQ_STR_ARG(0, path);
+  REQ_FUN_ARG(1, cb);
+  
+  GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
+  camera->Ref();
+  take_picture_request *picture_req = new take_picture_request();
+  picture_req->cb = Persistent<Function>::New(cb);
+  
+  picture_req->camera = camera->getCamera();
+  picture_req->cameraObject = camera;
+  picture_req->context = gp_context_new();
+  picture_req->download = true;
+  picture_req->path     = cv::CastFromJS<std::string>(args[0]);
+  DO_ASYNC(picture_req, EIO_DownloadPicture, EIO_CapturePreviewCb);
+  return Undefined();
+}
+
+void GPCamera::EIO_DownloadPicture(uv_work_t *_req){
+  take_picture_request *req = (take_picture_request *)_req->data;
+  
+  req->cameraObject->lock();
+  downloadPicture(req);
+  req->cameraObject->unlock();  
+}
 // Return available configuration widgets as a list in the form
 //  /main/status/model
 //  /main/status/serialnumber
@@ -260,7 +299,7 @@ GPCamera::GetPreview(const Arguments& args) {
   preview_req->camera = camera->getCamera();
   preview_req->context = gp_context_new();
   preview_req->cameraObject = camera;
-  
+  preview_req->download = true;
   DO_ASYNC(preview_req, EIO_CapturePreview, EIO_CapturePreviewCb);
 //  eio_custom(EIO_CapturePreview, EIO_PRI_DEFAULT, EIO_CapturePreviewCb, preview_req);
 //  ev_ref(EV_DEFAULT_UC);
@@ -286,19 +325,23 @@ void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
   take_picture_request *preview_req = (take_picture_request*) req->data;
   Handle<Value> argv[2];
   int argc = 1;
+  argv[0] = Undefined();
   if(preview_req->ret < GP_OK){
     argv[0] = Integer::New(preview_req->ret);
   }
-  else if(preview_req->data) {
+  else if(preview_req->data && preview_req->download) {
     argc = 2;
-    argv[0] = Undefined();
     node::Buffer* slowBuffer = node::Buffer::New(preview_req->length);
     memcpy(Buffer::Data(slowBuffer), preview_req->data, preview_req->length);
     Local<Object> globalObj = Context::GetCurrent()->Global();
     Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(v8::String::New("Buffer")));
     Handle<Value> constructorArgs[3] = { slowBuffer->handle_, v8::Integer::New(preview_req->length), v8::Integer::New(0) };
     Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
-    argv[1] =actualBuffer;
+    
+    argv[1] = actualBuffer;
+  }else{
+    argc = 2;
+    argv[1] = cv::CastToJS(preview_req->path);
   }
   
   preview_req->cb->Call(Context::GetCurrent()->Global(), argc, argv);

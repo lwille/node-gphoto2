@@ -69,16 +69,33 @@ app.get '/settings', (req, res)->
     camera.getConfig (er, settings)->
       res.send JSON.stringify(settings)
 
+app.get '/download/*', (req, res)->
+  unless camera
+    res.send 404, 'Camera not connected'
+  else
+    if (match = req.url.match /download(.*)$/) and (path = match[1])
+      console.log "trying to DL #{path}"
+      camera.downloadPicture path, (er, data)->
+        if er
+          res.send 404, er
+        else
+          res.header 'Content-Type', 'image/jpeg'
+          res.send data
+          
 app.get '/takePicture', (req, res)->
   unless camera
     res.send 404, 'Camera not connected'
   else
-    camera.takePicture (er, data)->
+    camera.takePicture download:(if req.query.download is 'false' then false else true), (er, data)->
       if er
         res.send 404, er
       else
-        res.header 'Content-Type', 'image/jpeg'
-        res.send data
+        if req.query.download is 'false'
+          console.log data
+          res.send "/download"+data
+        else
+          res.header 'Content-Type', 'image/jpeg'
+          res.send data
         
 app.get '/preview*', (req, res)->
   unless camera

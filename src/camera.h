@@ -30,6 +30,7 @@
   static Persistent<String> camera_setConfigValue_symbol;
   static Persistent<String> camera_takePicture_symbol;
   static Persistent<String> camera_getPreview_symbol;
+  static Persistent<String> camera_downloadPicture_symbol;
   class GPCamera : public node::ObjectWrap {
     pthread_mutex_t cameraMutex;
     void lock(){pthread_mutex_lock(&this->cameraMutex);};
@@ -51,7 +52,9 @@
       GPContext *context;
       const char *data;
       size_t length;
-      int ret;  
+      int ret;
+      bool download;
+      std::string path;
     };
     struct get_config_request {
       Persistent<Function> cb;
@@ -78,6 +81,8 @@
     static int enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode>::Tree &tree);
     static int getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig);
     static int setWidgetValue(set_config_request *req);
+    static void takePicture(take_picture_request *req);
+    static void downloadPicture(take_picture_request *req);
     bool close();
     
     public:
@@ -92,11 +97,13 @@
       static Handle<Value> SetConfigValue(const Arguments &args);
       static Handle<Value> TakePicture(const Arguments &args);
       static Handle<Value> GetPreview(const Arguments& args);
+      static Handle<Value> DownloadPicture(const Arguments& args);
       ASYNC_FN(EIO_GetConfig);
       ASYNC_CB(EIO_GetConfigCb);
       ASYNC_FN(EIO_SetConfigValue);
       ASYNC_CB(EIO_SetConfigValueCb);
       ASYNC_FN(EIO_TakePicture);
+      ASYNC_FN(EIO_DownloadPicture);
       ASYNC_FN(EIO_CapturePreview);
       ASYNC_CB(EIO_CapturePreviewCb);
       std::string getPort(){return this->port_;};
