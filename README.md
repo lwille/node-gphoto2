@@ -1,6 +1,6 @@
 # node-gphoto2
 A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote controlling of DSLRs and other digital cameras supported by [gphoto2](http://www.gphoto.org).
-"!https://secure.travis-ci.org/lwille/node-gphoto2.png!":http://travis-ci.org/lwille/node-gphoto2
+!https://secure.travis-ci.org/lwille/node-gphoto2.png!:http://travis-ci.org/lwille/node-gphoto2
 
 The included test application currently allows you to
 
