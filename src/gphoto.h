@@ -32,10 +32,10 @@ class GPhoto2: public node::ObjectWrap {
     GPContext *getContext(){return this->context_;};
 
     GPPortInfoList *getPortInfoList(){return this->portinfolist_;};
-    void setPortInfoList(GPPortInfoList *p){printf("Setting portinfolist_ to %p\n",p);this->portinfolist_=p;};
+    void setPortInfoList(GPPortInfoList *p){this->portinfolist_=p;};
 
     CameraAbilitiesList *getAbilitiesList(){return this->abilities_;};
-    void setAbilitiesList(CameraAbilitiesList *p){printf("Setting abilities_ to %p\n",p);this->abilities_=p;};
+    void setAbilitiesList(CameraAbilitiesList *p){this->abilities_=p;};
     int openCamera(GPCamera *camera);
     int closeCamera(GPCamera *camera);
     

@@ -12,7 +12,6 @@ GPhoto2::GPhoto2() : portinfolist_(NULL), abilities_(NULL) {
 }
 
 GPhoto2::~GPhoto2(){
-  printf("GPhoto2 destructor\n");
 }
 
 void GPhoto2::Initialize(Handle<Object> target) {
