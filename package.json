@@ -22,7 +22,8 @@
     "superagent": "0.2.0"
   },
   "scripts": {
-    "preinstall": "node-waf clean || (exit 0); node-waf configure build",
+    "preinstall": "make",
+    "prepublish": "make clean",
     "test": "killall PTPCamera;coffee --nodejs --expose-gc test/test.coffee"
   }
 }
