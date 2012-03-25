@@ -1,4 +1,5 @@
 all:
 	node-waf configure build
 clean:
-	node-waf clean
+	rm -rf build
+	rm .lock-wscript
