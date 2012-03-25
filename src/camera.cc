@@ -332,13 +332,14 @@ void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
   else if(preview_req->data && preview_req->download) {
     argc = 2;
     node::Buffer* slowBuffer = node::Buffer::New(preview_req->length);
-    memcpy(Buffer::Data(slowBuffer), preview_req->data, preview_req->length);
-    Local<Object> globalObj = Context::GetCurrent()->Global();
-    Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(v8::String::New("Buffer")));
-    Handle<Value> constructorArgs[3] = { slowBuffer->handle_, v8::Integer::New(preview_req->length), v8::Integer::New(0) };
-    Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
-    
-    argv[1] = actualBuffer;
+    if(preview_req->length){
+      memmove(Buffer::Data(slowBuffer), preview_req->data, preview_req->length);
+      Local<Object> globalObj = Context::GetCurrent()->Global();
+      Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(v8::String::New("Buffer")));
+      Handle<Value> constructorArgs[3] = { slowBuffer->handle_, v8::Integer::New(preview_req->length), v8::Integer::New(0) };
+      Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
+      argv[1] = actualBuffer;
+    }
   }else{
     argc = 2;
     argv[1] = cv::CastToJS(preview_req->path);
