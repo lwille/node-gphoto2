@@ -255,7 +255,6 @@ GPCamera::downloadPicture(take_picture_request *req){
       //        retval = gp_camera_file_delete(req->camera, folder.str().c_str(), name.c_str(), req->context);
       // }
     }
-  	gp_file_free(file);
   }
   req->ret=retval;
 }
