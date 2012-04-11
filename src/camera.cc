@@ -280,7 +280,7 @@ GPCamera::New(const Arguments& args) {
 Camera* GPCamera::getCamera(){
     //printf("getCamera %s gphoto=%p\n", this->isOpen() ? "open" : "closed", gp);
   if(!this->isOpen()){
-    printf("Opening camera %s with portList=%p abilitiesList=%p\n", this->model_.c_str(),this->gphoto_->getPortInfoList(), this->gphoto_->getAbilitiesList());
+    //printf("Opening camera %s with portList=%p abilitiesList=%p\n", this->model_.c_str(),this->gphoto_->getPortInfoList(), this->gphoto_->getAbilitiesList());
     this->gphoto_->openCamera(this);
   } 
   return this->camera_;

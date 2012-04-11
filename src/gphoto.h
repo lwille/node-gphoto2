@@ -6,11 +6,13 @@ using namespace v8;
 class GPCamera;
 static Persistent<String> gphoto_test_symbol;
 static Persistent<String> gphoto_list_symbol;
+static Persistent<String> gphoto_onLog_symbol;
 class GPhoto2: public node::ObjectWrap {  
   GPContext * context_;
   
   GPPortInfoList   *portinfolist_;
   CameraAbilitiesList  *abilities_;
+  Persistent<Function> logCallBack;
   struct list_request {
       Persistent<Function> cb;
       GPhoto2             *gphoto;
@@ -29,6 +31,7 @@ class GPhoto2: public node::ObjectWrap {
     static Handle<Value> New(const Arguments &args);
     static Handle<Value> List(const Arguments &args);
     static Handle<Value> Test(const Arguments &args);
+    static Handle<Value> SetLogHandler(const Arguments &args);
     GPContext *getContext(){return this->context_;};
 
     GPPortInfoList *getPortInfoList(){return this->portinfolist_;};
@@ -38,6 +41,7 @@ class GPhoto2: public node::ObjectWrap {
     void setAbilitiesList(CameraAbilitiesList *p){this->abilities_=p;};
     int openCamera(GPCamera *camera);
     int closeCamera(GPCamera *camera);
+    static void LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);
     
 };
 #ifdef OLDLIB

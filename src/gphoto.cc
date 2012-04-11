@@ -28,6 +28,7 @@ void GPhoto2::Initialize(Handle<Object> target) {
 
   ADD_PROTOTYPE_METHOD(gphoto, test, Test);
   ADD_PROTOTYPE_METHOD(gphoto, list, List);
+  ADD_PROTOTYPE_METHOD(gphoto, onLog, SetLogHandler);
     
   target->Set(String::NewSymbol("GPhoto2"), constructor_template->GetFunction());
 }
@@ -68,6 +69,26 @@ Handle<Value> GPhoto2::List(const Arguments &args){
     return Undefined();
 }
 
+void GPhoto2::LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data){
+  HandleScope scope;
+  GPhoto2 *instance = (GPhoto2*)data;
+  if(instance->logCallBack != Undefined()){
+    
+    Handle<Value> argv[] = {cvv8::CastToJS(domain), cvv8::CastToJS(format), cvv8::CastToJS(args)};
+    instance->logCallBack->Call(Context::GetCurrent()->Global(), 3, argv);
+  }
+}
+
+Handle<Value> GPhoto2::SetLogHandler(const Arguments &args){
+  HandleScope scope;
+  // REQ_INT_ARG(0, level);
+  // REQ_FUN_ARG(1, cb);
+
+  // GPhoto2 *gphoto = ObjectWrap::Unwrap<GPhoto2>(args.This());
+  // gphoto->logCallBack = Persistent<Function>::New(cb);
+  // gp_log_add_func((GPLogLevel)level, GPhoto2::LogHandler, gphoto);
+  return Undefined();
+}
 
 void GPhoto2::EIO_List(uv_work_t *req){  
     int ret;
@@ -126,7 +147,7 @@ void  GPhoto2::EIO_ListCb(uv_work_t *req){
 
 int GPhoto2::openCamera(GPCamera *p){
   this->Ref();
-  printf("Opening camera %d context=%p\n", __LINE__, this->context_);
+  //printf("Opening camera %d context=%p\n", __LINE__, this->context_);
   Camera *camera;
   int ret = open_camera(&camera, p->getModel(), p->getPort(), this->portinfolist_, this->abilities_);
   p->setCamera(camera);
@@ -135,7 +156,7 @@ int GPhoto2::openCamera(GPCamera *p){
 
 int GPhoto2::closeCamera(GPCamera *p){
   this->Unref();
-  printf("Closing camera %s", p->getModel().c_str());
+  //printf("Closing camera %s", p->getModel().c_str());
   return 0;
 }
 

@@ -62,20 +62,20 @@ open_camera (Camera ** camera, std::string model, std::string port, GPPortInfoLi
 	int		ret, m, p;
 	CameraAbilities	a;
 	GPPortInfo	pi;
-  printf("Opening camera using %p\n", camera);
+  // printf("Opening camera using %p\n", camera);
 	ret = gp_camera_new (camera);
-  printf("Created new camera handle %d, %p\n", ret, *camera);
+  // printf("Created new camera handle %d, %p\n", ret, *camera);
 	if (ret < GP_OK) return ret;
 
 	/* First lookup the model / driver */
   m = gp_abilities_list_lookup_model (abilities, model.c_str());
-  printf("looked up model %d\n", m);
+  // printf("looked up model %d\n", m);
 	if (m < GP_OK) return ret;
   ret = gp_abilities_list_get_abilities (abilities, m, &a);
-  printf("looked up abilities %d\n", ret);
+  // printf("looked up abilities %d\n", ret);
 	if (ret < GP_OK) return ret;
   ret = gp_camera_set_abilities (*camera, a);
-  printf("set abilities %d\n", ret);
+  // printf("set abilities %d\n", ret);
 
 	if (ret < GP_OK) return ret;
 
@@ -97,13 +97,13 @@ open_camera (Camera ** camera, std::string model, std::string port, GPPortInfoLi
   }
   if (ret < GP_OK) return ret;
   ret = gp_port_info_list_get_info (portinfolist, p, &pi);
-  printf("port_info_list_get_info %d\n", ret);
+  //printf("port_info_list_get_info %d\n", ret);
   if (ret < GP_OK) return ret;
   ret = gp_camera_set_port_info (*camera, pi);
-  printf("gp_camera_set_port_info %d\n", ret);
+  //printf("gp_camera_set_port_info %d\n", ret);
   
   if (ret < GP_OK) return ret;
-  printf("open_camera finished %d\n", ret);
+  //printf("open_camera finished %d\n", ret);
 
 	return GP_OK;
 }

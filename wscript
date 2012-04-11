@@ -13,7 +13,6 @@ def configure(conf):
   conf.check_tool("compiler_cxx")
   conf.check_tool("node_addon")
 
-  conf.check_cfg(mandatory = False, package='libprofiler', args='--cflags --libs', uselib_store='PROFILER')
   conf.check_cfg(mandatory = True, package='libgphoto2', args='--cflags --libs', uselib_store='GPHOTO2')
   conf.check_cfg(mandatory = True, package='libgphoto2_port', args='--cflags --libs', uselib_store='GPHOTO2PORT')
   conf.env.append_value('CXXFLAGS', ['-Wall', '-Qunused-arguments'])
@@ -29,7 +28,7 @@ def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
   
   obj.cxxflags = ["-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]
-  obj.uselib = "PROFILER GPHOTO2 GPHOTO2PORT"
+  obj.uselib = "GPHOTO2 GPHOTO2PORT"
   
   obj.target = "gphoto2"
   obj.source = bld.glob("src/*.cc")
