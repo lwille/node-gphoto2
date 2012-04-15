@@ -41,6 +41,7 @@ GPCamera::Initialize(Handle<Object> target) {
     ADD_PROTOTYPE_METHOD(camera, takePicture, TakePicture);
     ADD_PROTOTYPE_METHOD(camera, getPreview, GetPreview);
     ADD_PROTOTYPE_METHOD(camera, downloadPicture, DownloadPicture);
+    ADD_PROTOTYPE_METHOD(camera, shutdown, Shutdown);
     target->Set(String::NewSymbol("Camera"), constructor_template->GetFunction());
 }
 
@@ -67,6 +68,8 @@ GPCamera::TakePicture(const Arguments& args) {
   picture_req->camera = camera->getCamera();
   picture_req->cameraObject = camera;
   picture_req->context = gp_context_new();
+  
+  gp_camera_ref(picture_req->camera);
   DO_ASYNC(picture_req, EIO_TakePicture, EIO_CapturePreviewCb);
   // eio_custom(EIO_TakePicture, EIO_PRI_DEFAULT, EIO_TakePictureCb, picture_req);
   // ev_ref(EV_DEFAULT_UC);
@@ -98,6 +101,7 @@ GPCamera::DownloadPicture(const Arguments& args){
   picture_req->context = gp_context_new();
   picture_req->download = true;
   picture_req->path     = cv::CastFromJS<std::string>(args[0]);
+  gp_camera_ref(picture_req->camera);
   DO_ASYNC(picture_req, EIO_DownloadPicture, EIO_CapturePreviewCb);
   return Undefined();
 }
@@ -121,7 +125,8 @@ GPCamera::GetConfig(const Arguments& args) {
   camera->Ref();
   get_config_request *config_req = new get_config_request();
   config_req->cameraObject = camera;
-  config_req->camera = camera->getCamera();
+  config_req->camera = camera->getCamera();  
+  gp_camera_ref(config_req->camera);
   config_req->context = gp_context_new();
   config_req->cb = Persistent<Function>::New(cb);
 
@@ -177,6 +182,7 @@ void GPCamera::EIO_GetConfigCb(uv_work_t *req){
   HandleScope scope;
   get_config_request *config_req = (get_config_request*)req->data;
   
+  gp_camera_unref(config_req->camera);
   Handle<Value> argv[2];
   
   
@@ -195,6 +201,7 @@ void GPCamera::EIO_GetConfigCb(uv_work_t *req){
   config_req->cb.Dispose();  
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);
+  gp_camera_unref(config_req->camera);
   
   delete config_req;
 }
@@ -231,6 +238,8 @@ GPCamera::SetConfigValue(const Arguments& args) {
   config_req->context = gp_context_new();
   config_req->cb = Persistent<Function>::New(cb);
   config_req->key = *key;
+  
+  gp_camera_ref(config_req->camera);
   DO_ASYNC(config_req, EIO_SetConfigValue, EIO_SetConfigValueCb);
   
   return Undefined();
@@ -247,6 +256,7 @@ void
 GPCamera::EIO_SetConfigValueCb(uv_work_t *req){
   HandleScope scope;
   set_config_request *config_req = (set_config_request *)req->data;
+  
   int argc = 0;
   Local<Value> argv[1];
   if(config_req->ret < GP_OK){
@@ -257,6 +267,7 @@ GPCamera::EIO_SetConfigValueCb(uv_work_t *req){
   config_req->cb.Dispose();  
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);
+  gp_camera_unref(config_req->camera);
   delete config_req;
   
 }
@@ -276,11 +287,46 @@ GPCamera::New(const Arguments& args) {
   This->Set(String::New("port"),String::New(camera->port_.c_str()));
   return args.This();
 }  
+Handle<Value> GPCamera::Shutdown(const Arguments& args){
+  
+  HandleScope scope;
+  GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
+  camera->Ref();
+  REQ_ARGS(1);
+  REQ_FUN_ARG(0, cb);
+ 
+  set_config_request *config_req = new set_config_request();
+  config_req->cb = Persistent<Function>::New(cb);
+  config_req->cameraObject = camera;
+  config_req->camera = camera->getCamera();
+  DO_ASYNC(config_req, EIO_Shutdown, EIO_ShutdownCb);
+  return Undefined();
+}
+
+
+void
+GPCamera::EIO_Shutdown(uv_work_t *req){
+  printf("Shutting down camera");
+  set_config_request *config_req = (set_config_request *)req->data;
+  gp_camera_exit(config_req->camera, NULL);
+}
+
+void
+GPCamera::EIO_ShutdownCb(uv_work_t *req){
+  HandleScope scope;
+  set_config_request *config_req = (set_config_request *)req->data;
+  
+  Handle<Value> argv[1];
+  config_req->cb->Call(Context::GetCurrent()->Global(), 0, argv);
+  config_req->cb.Dispose();  
+  config_req->cameraObject->Unref();
+  
+}
 
 Camera* GPCamera::getCamera(){
     //printf("getCamera %s gphoto=%p\n", this->isOpen() ? "open" : "closed", gp);
   if(!this->isOpen()){
-    //printf("Opening camera %s with portList=%p abilitiesList=%p\n", this->model_.c_str(),this->gphoto_->getPortInfoList(), this->gphoto_->getAbilitiesList());
+    printf("Opening camera %s with portList=%p abilitiesList=%p\n", this->model_.c_str(),this->gphoto_->getPortInfoList(), this->gphoto_->getAbilitiesList());
     this->gphoto_->openCamera(this);
   } 
   return this->camera_;
@@ -297,6 +343,7 @@ GPCamera::GetPreview(const Arguments& args) {
 
   preview_req->cb = Persistent<Function>::New(cb);
   preview_req->camera = camera->getCamera();
+  gp_camera_ref(preview_req->camera);
   preview_req->context = gp_context_new();
   preview_req->cameraObject = camera;
   preview_req->download = true;
@@ -323,6 +370,7 @@ void GPCamera::EIO_CapturePreview(uv_work_t *req){
 void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
   HandleScope scope;
   take_picture_request *preview_req = (take_picture_request*) req->data;
+  
   Handle<Value> argv[2];
   int argc = 1;
   argv[0] = Undefined();
@@ -350,6 +398,7 @@ void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
   if(preview_req->ret == GP_OK)  gp_file_free(preview_req->file);
   preview_req->cameraObject->Unref();
   gp_context_unref(preview_req->context);
+  gp_camera_unref(preview_req->camera);
   
   delete preview_req;  
 }
