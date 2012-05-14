@@ -25,10 +25,11 @@ gphoto.list (cameras)->
   process.exit(-1) unless camera
   # retrieve available configuration settings
   console.log "loading #{camera.model} settings"
-  camera.setConfigValue "uilock", 0, (er)->
-    console.log er if er
-    camera.getConfig (er, settings)->
-      console.log settings
+  #camera.setConfigValue "uilock", 0, (er)->
+  #  console.log er if er
+  camera.getConfig (er, settings)->
+    console.error camera_error:er if er
+    console.log settings
 
 app = express()
 
