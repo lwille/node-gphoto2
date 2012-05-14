@@ -146,7 +146,6 @@ int GPCamera::setWidgetValue(set_config_request *req){
 
   ret = gp_camera_set_config (req->camera, rootconfig, req->context);
   if(ret < GP_OK) return ret;
-  printf("stored settings=%d\n", ret);
   gp_widget_free(rootconfig);
   return ret;
 }
