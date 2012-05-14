@@ -28,6 +28,10 @@ describe "node-gphoto2", ()->
       settings.main.should.have.property 'children'
       done()
   
+  it 'should allow saving camera settings', (done)->
+    cameras[0].setConfigValue 'capturetarget', 1, (er)->
+      should.not.exist er
+      done()
   describe 'should be able to take a picture', ()->
     it 'without downloading', (done)->
       cameras[0].takePicture download:false, (er, file)->
