@@ -1,11 +1,17 @@
-should = require 'should'
+global[id] ?= require name for id, name of {
+  "sinon"
+  "path"
+  "fs"
+  "GPhoto":"../main"
+  "child_process"
+}
 
-GPhoto = require "../main"
-{exec} = require 'child_process'
+should = require "should"
+
+{exec} = child_process
+
 cameras = undefined
-path = require 'path'
-sinon = require 'sinon'
-
+tempfiles = []
 
 describe "node-gphoto2", ()->
   before (next)->
@@ -52,6 +58,7 @@ describe "node-gphoto2", ()->
         file.should.be.a('string')
         path.exists file, (exists)->
           if exists
+            tempfiles.push file
             done() 
           else
             done "#{file} does not exist."
@@ -61,6 +68,11 @@ describe "node-gphoto2", ()->
         file.should.be.a('string')
         path.exists file, (exists)->
           if exists
+            tempfiles.push file
             done() 
           else
             done "#{file} does not exist."
+    # clean up our mess :)
+    after ()->
+      tempfiles.forEach (file)->
+        fs.unlinkSync file
