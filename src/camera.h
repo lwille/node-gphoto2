@@ -55,6 +55,7 @@
       int ret;
       bool download;
       std::string path;
+      std::string target_path;
     };
     struct get_config_request {
       Persistent<Function> cb;

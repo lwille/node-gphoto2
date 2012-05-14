@@ -2,7 +2,8 @@
 #include <ctime>
 #include <sstream>
 #include <cstring>
-
+#include <errno.h>
+#include <unistd.h>
 namespace cv = cvv8;
 Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget) {
   HandleScope scope;
@@ -229,7 +230,7 @@ int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode
 void 
 GPCamera::downloadPicture(take_picture_request *req){    
 	CameraFile *file;
-  int retval;
+  int fd,retval;
 	retval = gp_file_new(&file);
 	
   std::ostringstream folder;
@@ -246,15 +247,39 @@ GPCamera::downloadPicture(take_picture_request *req){
     }
     if(folder.str().length() == 0)
       folder<<"/";
-  	
-  	retval = gp_camera_file_get(req->camera, folder.str().c_str(), name.c_str(),
-  		     GP_FILE_TYPE_NORMAL, file, req->context);
-    if(retval == GP_OK){
-  	  retval = gp_file_get_data_and_size (file, &req->data, &req->length);
-      //       if(retval == GP_OK){
-      //        retval = gp_camera_file_delete(req->camera, folder.str().c_str(), name.c_str(), req->context);
-      // }
+      
+  	if(!req->target_path.empty()){
+  	  char *tmpname = strdup(req->target_path.c_str());
+  	  fd = mkstemp(tmpname);
+      req->target_path = tmpname;
+      if (fd == -1) {
+    	    if (errno == EACCES) {
+    	        gp_context_error (req->context, "Permission denied");
+    	    }
+          req->ret = errno;
+          return;
+    	}
+    	retval = gp_file_new_from_fd (&file, fd);
+			if (retval < GP_OK) {
+				::close(fd);
+        req->ret=retval;
+        return;
+			}
     }
+    
+		retval = gp_camera_file_get ( req->camera, folder.str().c_str(), name.c_str(), GP_FILE_TYPE_NORMAL, file, req->context);
+		
+		// Fallback to downloading into buffer
+		if(retval == GP_OK && req->target_path.empty()){
+		  retval = gp_file_get_data_and_size (file, &req->data, &req->length);
+		}
+		
+    if(retval == GP_OK){
+      retval = gp_camera_file_delete(req->camera, folder.str().c_str(), name.c_str(), req->context);
+    }
+  }
+  if(fd > 0){
+	  ::close(fd);
   }
   req->ret=retval;
 }
@@ -263,14 +288,11 @@ GPCamera::takePicture(take_picture_request *req) {
 	int retval;
 	CameraFilePath camera_file_path;
 
-	printf("Capturing.\n");
-
 	/* NOP: This gets overridden in the library to /capt0000.jpg */
 	strcpy(camera_file_path.folder, "/");
 	strcpy(camera_file_path.name, "foo.jpg");
 	
 	retval = gp_camera_capture(req->camera, GP_CAPTURE_IMAGE, &camera_file_path, req->context);
-	printf("  Retval: %d\n", retval);
   std::ostringstream path;
   if(std::string(camera_file_path.folder).compare("/") != 0)
     path << camera_file_path.folder;
