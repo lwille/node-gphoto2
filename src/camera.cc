@@ -41,7 +41,6 @@ GPCamera::Initialize(Handle<Object> target) {
     ADD_PROTOTYPE_METHOD(camera, takePicture, TakePicture);
     ADD_PROTOTYPE_METHOD(camera, getPreview, GetPreview);
     ADD_PROTOTYPE_METHOD(camera, downloadPicture, DownloadPicture);
-    ADD_PROTOTYPE_METHOD(camera, shutdown, Shutdown);
     target->Set(String::NewSymbol("Camera"), constructor_template->GetFunction());
 }
 
@@ -287,41 +286,6 @@ GPCamera::New(const Arguments& args) {
   This->Set(String::New("port"),String::New(camera->port_.c_str()));
   return args.This();
 }  
-Handle<Value> GPCamera::Shutdown(const Arguments& args){
-  
-  HandleScope scope;
-  GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
-  camera->Ref();
-  REQ_ARGS(1);
-  REQ_FUN_ARG(0, cb);
- 
-  set_config_request *config_req = new set_config_request();
-  config_req->cb = Persistent<Function>::New(cb);
-  config_req->cameraObject = camera;
-  config_req->camera = camera->getCamera();
-  DO_ASYNC(config_req, EIO_Shutdown, EIO_ShutdownCb);
-  return Undefined();
-}
-
-
-void
-GPCamera::EIO_Shutdown(uv_work_t *req){
-  printf("Shutting down camera");
-  set_config_request *config_req = (set_config_request *)req->data;
-  gp_camera_exit(config_req->camera, NULL);
-}
-
-void
-GPCamera::EIO_ShutdownCb(uv_work_t *req){
-  HandleScope scope;
-  set_config_request *config_req = (set_config_request *)req->data;
-  
-  Handle<Value> argv[1];
-  config_req->cb->Call(Context::GetCurrent()->Global(), 0, argv);
-  config_req->cb.Dispose();  
-  config_req->cameraObject->Unref();
-  
-}
 
 Camera* GPCamera::getCamera(){
     //printf("getCamera %s gphoto=%p\n", this->isOpen() ? "open" : "closed", gp);
