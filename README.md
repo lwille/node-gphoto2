@@ -57,7 +57,7 @@ camera.takePicture({
 // Download a picture from camera
 camera.downloadPicture({
     cameraPath:'/store_00020001/DCIM/100CANON/IMG_1231.JPG', 
-    targetPath:'/tmp/foo.XXXXX
+    targetPath:'/tmp/foo.XXXXX'
   }, function(er, tmpname){
     fs.rename(tmpname, './picture.jpg')
 })
