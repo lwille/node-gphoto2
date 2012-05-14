@@ -2,7 +2,7 @@
   "author": "Leonhardt Wille <hallo@leonhardt-wille.de>",
   "name": "gphoto2",
   "description": "Node.js wrapper for libgphoto2",
-  "version": "0.0.6",
+  "version": "0.1.0alpha1",
   "homepage": "https://www.riverlabs.de",
   "repository": {
     "type": "git",
@@ -20,11 +20,13 @@
     "underscore": "1.3.x",
     "jade": "0.26.0",
     "superagent": "0.4.x",
-    "mocha": "1.0.x"
+    "mocha": "1.0.x",
+    "should": "0.6.x",
+    "sinon": "1.3.x"
   },
   "scripts": {
     "preinstall": "make",
     "prepublish": "make clean",
-    "test": "killall PTPCamera;coffee --nodejs --expose-gc test/test.coffee"
+    "test": "mocha test/*.test.coffee"
   }
 }
