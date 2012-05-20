@@ -39,7 +39,6 @@ GPCamera::Initialize(Handle<Object> target) {
     ADD_PROTOTYPE_METHOD(camera, getConfig, GetConfig);
     ADD_PROTOTYPE_METHOD(camera, setConfigValue, SetConfigValue);
     ADD_PROTOTYPE_METHOD(camera, takePicture, TakePicture);
-    ADD_PROTOTYPE_METHOD(camera, getPreview, GetPreview);
     ADD_PROTOTYPE_METHOD(camera, downloadPicture, DownloadPicture);
     target->Set(String::NewSymbol("Camera"), constructor_template->GetFunction());
 }
@@ -50,17 +49,27 @@ GPCamera::TakePicture(const Arguments& args) {
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
   take_picture_request *picture_req = new take_picture_request();
+  picture_req->preview = false;
+
   if(args.Length() >= 2){
     REQ_OBJ_ARG(0, options);
     REQ_FUN_ARG(1, cb);    
     picture_req->cb = Persistent<Function>::New(cb);
     Local<Value> dl = options->Get(String::New("download"));
     Local<Value> target = options->Get(String::New("targetPath"));
+    Local<Value> preview = options->Get(String::New("preview"));
+    Local<Value> socket  = options->Get(String::New("socket"));
     if(target->IsString()){
       picture_req->target_path = cv::CastFromJS<std::string>(target);
     }
+    if(socket->IsString()){
+      picture_req->socket_path = cv::CastFromJS<std::string>(socket);
+    }
     if(dl->IsBoolean()){
       picture_req->download = dl->ToBoolean()->Value();
+    }
+    if(preview->IsBoolean()){
+      picture_req->preview = preview->ToBoolean()->Value();
     }
   }else{
     REQ_FUN_ARG(0, cb);
@@ -71,19 +80,62 @@ GPCamera::TakePicture(const Arguments& args) {
   picture_req->cameraObject = camera;
   
   picture_req->context = gp_context_new();
-  DO_ASYNC(picture_req, EIO_TakePicture, EIO_CapturePreviewCb);
-  // eio_custom(EIO_TakePicture, EIO_PRI_DEFAULT, EIO_TakePictureCb, picture_req);
-  // ev_ref(EV_DEFAULT_UC);
+  DO_ASYNC(picture_req, EIO_Capture, EIO_CaptureCb);
   return Undefined();
 }
-void
-GPCamera::EIO_TakePicture(uv_work_t *_req){
-  take_picture_request *req = (take_picture_request *)_req->data;
 
+void
+GPCamera::EIO_Capture(uv_work_t *_req){
+  take_picture_request *req = (take_picture_request *)_req->data;
   req->cameraObject->lock();
-  takePicture(req);
+  if(req->preview){
+    capturePreview(req);
+  }else{
+    takePicture(req);
+  }
   req->cameraObject->unlock();
 }
+
+void GPCamera::EIO_CaptureCb(uv_work_t *req){
+  HandleScope scope;
+  take_picture_request *capture_req = (take_picture_request*) req->data;
+  
+  Handle<Value> argv[2];
+  int argc = 1;
+  argv[0] = Undefined();
+  if(capture_req->ret < GP_OK){
+    argv[0] = Integer::New(capture_req->ret);
+  }
+  else if(capture_req->download && !capture_req->target_path.empty()){
+    argc=2;
+    argv[1] = String::New(capture_req->target_path.c_str());
+  }  
+  else if(capture_req->data && capture_req->download) {
+    argc = 2;
+    node::Buffer* slowBuffer = node::Buffer::New(capture_req->length);
+    if(capture_req->length){
+      memmove(Buffer::Data(slowBuffer), capture_req->data, capture_req->length);
+      Local<Object> globalObj = Context::GetCurrent()->Global();
+      Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(String::New("Buffer")));
+      Handle<Value> constructorArgs[3] = { slowBuffer->handle_, Integer::New(capture_req->length), Integer::New(0) };
+      Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
+      argv[1] = actualBuffer;
+    }
+  }else{
+    argc = 2;
+    argv[1] = cv::CastToJS(capture_req->path);
+  }
+  
+  capture_req->cb->Call(Context::GetCurrent()->Global(), argc, argv);
+  capture_req->cb.Dispose();
+  if(capture_req->ret == GP_OK)  gp_file_free(capture_req->file);
+  capture_req->cameraObject->Unref();
+  gp_context_unref(capture_req->context);
+//  gp_camera_unref(capture_req->camera);
+  
+  delete capture_req;  
+}
+
 
 Handle<Value>
 GPCamera::DownloadPicture(const Arguments& args){
@@ -110,7 +162,7 @@ GPCamera::DownloadPicture(const Arguments& args){
   
   picture_req->path     = cv::CastFromJS<std::string>(source);
   gp_camera_ref(picture_req->camera);
-  DO_ASYNC(picture_req, EIO_DownloadPicture, EIO_CapturePreviewCb);
+  DO_ASYNC(picture_req, EIO_DownloadPicture, EIO_CaptureCb);
   return Undefined();
 }
 
@@ -302,81 +354,6 @@ Camera* GPCamera::getCamera(){
   } 
   return this->camera_;
 };
-
-
-Handle<Value>
-GPCamera::GetPreview(const Arguments& args) {
-  HandleScope scope;
-  GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
-  camera->Ref();
-  REQ_FUN_ARG(0, cb);
-  take_picture_request *preview_req = new take_picture_request();
-
-  preview_req->cb = Persistent<Function>::New(cb);
-  preview_req->camera = camera->getCamera();
-  gp_camera_ref(preview_req->camera);
-  preview_req->context = gp_context_new();
-  preview_req->cameraObject = camera;
-  preview_req->download = true;
-  DO_ASYNC(preview_req, EIO_CapturePreview, EIO_CapturePreviewCb);
-//  eio_custom(EIO_CapturePreview, EIO_PRI_DEFAULT, EIO_CapturePreviewCb, preview_req);
-//  ev_ref(EV_DEFAULT_UC);
-  return scope.Close(Undefined());
-    
-}
-void GPCamera::EIO_CapturePreview(uv_work_t *req){
-  take_picture_request *preview_req = (take_picture_request*) req->data;
-  
-  RETURN_ON_ERROR(preview_req, gp_file_new, (&preview_req->file), {});
-
-  preview_req->cameraObject->lock();
-  RETURN_ON_ERROR(preview_req, gp_camera_capture_preview, (preview_req->camera, preview_req->file, preview_req->context), {gp_file_free(preview_req->file);preview_req->cameraObject->unlock();});
-  preview_req->cameraObject->unlock();
-
-  unsigned long int length;
-  RETURN_ON_ERROR(preview_req, gp_file_get_data_and_size, (preview_req->file, &preview_req->data, &length), {gp_file_free(preview_req->file);});
-  preview_req->length = (size_t)length;
-}
-
-void GPCamera::EIO_CapturePreviewCb(uv_work_t *req){
-  HandleScope scope;
-  take_picture_request *preview_req = (take_picture_request*) req->data;
-  
-  Handle<Value> argv[2];
-  int argc = 1;
-  argv[0] = Undefined();
-  if(preview_req->ret < GP_OK){
-    argv[0] = Integer::New(preview_req->ret);
-  }
-  else if(preview_req->download && !preview_req->target_path.empty()){
-    argc=2;
-    argv[1] = String::New(preview_req->target_path.c_str());
-  }  
-  else if(preview_req->data && preview_req->download) {
-    argc = 2;
-    node::Buffer* slowBuffer = node::Buffer::New(preview_req->length);
-    if(preview_req->length){
-      memmove(Buffer::Data(slowBuffer), preview_req->data, preview_req->length);
-      Local<Object> globalObj = Context::GetCurrent()->Global();
-      Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(String::New("Buffer")));
-      Handle<Value> constructorArgs[3] = { slowBuffer->handle_, Integer::New(preview_req->length), Integer::New(0) };
-      Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
-      argv[1] = actualBuffer;
-    }
-  }else{
-    argc = 2;
-    argv[1] = cv::CastToJS(preview_req->path);
-  }
-  
-  preview_req->cb->Call(Context::GetCurrent()->Global(), argc, argv);
-  preview_req->cb.Dispose();
-  if(preview_req->ret == GP_OK)  gp_file_free(preview_req->file);
-  preview_req->cameraObject->Unref();
-  gp_context_unref(preview_req->context);
-//  gp_camera_unref(preview_req->camera);
-  
-  delete preview_req;  
-}
 
 bool
 GPCamera::close(){

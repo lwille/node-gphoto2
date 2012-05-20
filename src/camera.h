@@ -29,7 +29,6 @@
   static Persistent<String> camera_getConfigValue_symbol;
   static Persistent<String> camera_setConfigValue_symbol;
   static Persistent<String> camera_takePicture_symbol;
-  static Persistent<String> camera_getPreview_symbol;
   static Persistent<String> camera_downloadPicture_symbol;
   class GPCamera : public node::ObjectWrap {
     pthread_mutex_t cameraMutex;
@@ -54,8 +53,10 @@
       size_t length;
       int ret;
       bool download;
+      bool preview;
       std::string path;
       std::string target_path;
+      std::string socket_path;
     };
     struct get_config_request {
       Persistent<Function> cb;
@@ -83,7 +84,9 @@
     static int getConfigWidget(get_config_request *req, std::string name, CameraWidget **child, CameraWidget **rootconfig);
     static int setWidgetValue(set_config_request *req);
     static void takePicture(take_picture_request *req);
+    static void capturePreview(take_picture_request *req);
     static void downloadPicture(take_picture_request *req);
+    static int getCameraFile(take_picture_request *req, CameraFile **file);
     bool close();
     
     public:
@@ -97,16 +100,14 @@
       static Handle<Value> GetConfigValue(const Arguments &args);
       static Handle<Value> SetConfigValue(const Arguments &args);
       static Handle<Value> TakePicture(const Arguments &args);
-      static Handle<Value> GetPreview(const Arguments& args);
       static Handle<Value> DownloadPicture(const Arguments& args);
       ASYNC_FN(EIO_GetConfig);
       ASYNC_CB(EIO_GetConfigCb);
       ASYNC_FN(EIO_SetConfigValue);
       ASYNC_CB(EIO_SetConfigValueCb);
-      ASYNC_FN(EIO_TakePicture);
       ASYNC_FN(EIO_DownloadPicture);
-      ASYNC_FN(EIO_CapturePreview);
-      ASYNC_CB(EIO_CapturePreviewCb);
+      ASYNC_FN(EIO_Capture);
+      ASYNC_CB(EIO_CaptureCb);
       std::string getPort(){return this->port_;};
       std::string getModel(){return this->model_;};
       void setCamera(Camera *camera){this->camera_=camera;};
