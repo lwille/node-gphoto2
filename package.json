@@ -9,7 +9,7 @@
     "url": "git://github.com/lwille/node-gphoto2.git"
   },
   "engines": {
-    "node": ">=0.6.25"
+    "node": ">=0.6.20"
   },
   "main": "gphoto2.node",
   "dependencies": {
