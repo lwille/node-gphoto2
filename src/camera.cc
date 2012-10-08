@@ -103,7 +103,7 @@ void GPCamera::EIO_CaptureCb(uv_work_t *req){
   Handle<Value> argv[2];
   int argc = 1;
   argv[0] = Undefined();
-  if(capture_req->ret < GP_OK){
+  if(capture_req->ret != GP_OK){
     argv[0] = Integer::New(capture_req->ret);
   }
   else if(capture_req->download && !capture_req->target_path.empty()){

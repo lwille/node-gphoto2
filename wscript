@@ -18,13 +18,6 @@ def configure(conf):
   conf.env.append_value('CXXFLAGS', ['-Wall', '-Qunused-arguments'])
 
 def build(bld):
-  if(exists('src/preview.cc')):
-    test = bld.new_task_gen("cxx", "program")
-    test.uselib = "GPHOTO2 GPHOTO2PORT"
-    test.source = "src/preview.cc"
-    test.target = "preview"
-
-
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
   
   obj.cxxflags = ["-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE"]

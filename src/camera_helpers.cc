@@ -257,11 +257,11 @@ GPCamera::getCameraFile(take_picture_request *req, CameraFile **file){
 	    if (errno == EACCES) {
 	        gp_context_error (req->context, "Permission denied");
 	    }
-      return retval;
+      return errno;
 	}
   if(fd>=0){  
   	retval = gp_file_new_from_fd(file, fd);
-  	if (retval < GP_OK) {
+  	if (retval != GP_OK) {
   		::close(fd);
 		}
 	}
@@ -290,8 +290,11 @@ GPCamera::downloadPicture(take_picture_request *req){
     
   retval = getCameraFile(req, &file);
   
-  if(retval == GP_OK){
+  if (retval == GP_OK) {
 	  retval = gp_camera_file_get ( req->camera, folder.str().c_str(), name.c_str(), GP_FILE_TYPE_NORMAL, file, req->context);
+  } else {    
+    req->ret=retval;
+    return;
   }
 	
 	// Fallback to downloading into buffer

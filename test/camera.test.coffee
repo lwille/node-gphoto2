@@ -47,7 +47,7 @@ describe "node-gphoto2", ()->
      it 'without downloading', (done)->
        cameras[0].takePicture download:false, (er, file)->
          should.not.exist er
-         file.should.be.a('string')
+         file.should.be.a 'string'
          cameras[0].firstPicture = file
          done()
      it 'and download it to a buffer', (done)->
@@ -60,17 +60,7 @@ describe "node-gphoto2", ()->
      it 'and download it to the file system', (done)->
        cameras[0].takePicture download:true, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
          should.not.exist er
-         file.should.be.a('string')
-         path.exists file, (exists)->
-           if exists
-             tempfiles.push file
-             done() 
-           else
-             done "#{file} does not exist."
-     it 'and download it later', (done)->
-       cameras[0].downloadPicture cameraPath:cameras[0].firstPicture, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
-         should.not.exist er
-         file.should.be.a('string')
+         file.should.be.a 'string'
          path.exists file, (exists)->
            if exists
              tempfiles.push file
@@ -78,6 +68,21 @@ describe "node-gphoto2", ()->
            else
              done "#{file} does not exist."
 
+     it 'and download it later', (done)->
+       cameras[0].downloadPicture cameraPath:cameras[0].firstPicture, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
+         should.not.exist er
+         file.should.be.a 'string'
+         path.exists file, (exists)->
+           if exists
+             tempfiles.push file
+             done() 
+           else
+             done "#{file} does not exist."
+  
+  it "should return a proper error code when something goes wrong", (done)->
+    cameras[0].takePicture download:true, targetPath: '/path/does/not/exist/foo.XXXXXXX', (er, file)->
+      er.should.be.a 'number'
+      done()
   describe 'should be able to take a preview picture', ()->
     it 'and send it over a socket', (done)->
       @timeout 25000
