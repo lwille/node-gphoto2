@@ -26,8 +26,7 @@
     "async": "0.1.x"
   },
   "scripts": {
-    "preinstall": "make",
-    "prepublish": "make clean",
+    "prepublish": "node-gyp clean",
     "test": "mocha test/*.test.coffee"
   }
 }
