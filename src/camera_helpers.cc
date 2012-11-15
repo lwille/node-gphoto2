@@ -14,7 +14,7 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 	CameraWidgetType	type;
   int ret;
   Local<Object> value = Object::New();
-  
+
 	ret = gp_widget_get_type (widget, &type);
 	if (ret != GP_OK)
 		return Undefined();
@@ -55,9 +55,9 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 		break;
 	}
 	case GP_WIDGET_TOGGLE: {	/* int		*/
-		int	t;    
+		int	t;
 		ret = gp_widget_get_value (widget, &t);
-		if (ret == GP_OK) {		  
+		if (ret == GP_OK) {
 		  value->Set(cv::CastToJS("type"), cv::CastToJS("toggle"));
       value->Set(cv::CastToJS("value"), cv::CastToJS(t));
       break;
@@ -82,28 +82,28 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
 	case GP_WIDGET_RADIO: { /* char *		*/
     int cnt, i;
     const char *current = NULL;
-    
-    
+
+
     ret = gp_widget_get_value (widget, &current);
-    
-    
+
+
 		cnt = gp_widget_count_choices (widget);
 		if (cnt < GP_OK) {
 			ret = cnt;
 			break;
 		}
 		ret = GP_ERROR_BAD_PARAMETERS;
-		
+
     Local<Array> choices = Array::New(cnt);
 		for ( i=0; i<cnt; i++) {
 			const char *choice = NULL;
-      
+
 			ret = gp_widget_get_choice (widget, i, &choice);
 			if (ret != GP_OK)
-				continue;				
-      choices->Set(cv::CastToJS(i), cv::CastToJS(choice));    	  
+				continue;
+      choices->Set(cv::CastToJS(i), cv::CastToJS(choice));
 		}
-   		
+
 	  value->Set(cv::CastToJS("type"), cv::CastToJS("choice"));
     value->Set(cv::CastToJS("value"), cv::CastToJS(current));
     value->Set(cv::CastToJS("choices"), choices);
@@ -118,9 +118,9 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget)
     value->Set(cv::CastToJS("type"), cv::CastToJS("section"));
   break;
 	case GP_WIDGET_BUTTON:
-    value->Set(cv::CastToJS("type"), cv::CastToJS("button"));    
+    value->Set(cv::CastToJS("type"), cv::CastToJS("button"));
 		break;
-	} 
+	}
   return scope.Close(value);
 }
 
@@ -130,19 +130,19 @@ int GPCamera::setWidgetValue(set_config_request *req){
   CameraWidget *rootconfig;
   ret = gp_camera_get_config(req->camera, &rootconfig, req->context);
   if(ret < GP_OK) return ret;
-  
+
   ret = gp_widget_get_child_by_name(rootconfig, req->key.c_str(), &child);
   if(ret < GP_OK) return ret;
-  
+
   switch(req->valueType){
     case set_config_request::String :
-      ret = gp_widget_set_value(child, req->strValue.c_str());      
+      ret = gp_widget_set_value(child, req->strValue.c_str());
     break;
     case set_config_request::Integer :
       ret = gp_widget_set_value(child, &req->intValue);
     break;
     case set_config_request::Float :
-      ret = gp_widget_set_value(child, &req->fltValue);      
+      ret = gp_widget_set_value(child, &req->fltValue);
     break;
   }
   if(ret < GP_OK) return ret;
@@ -157,10 +157,10 @@ int GPCamera::getConfigWidget(get_config_request *req, std::string name, CameraW
   int ret;
   GPContext *context = req->context;
   Camera    *camera  = req->camera;
-  
+
   ret = gp_camera_get_config(camera, rootconfig, context);
   ret = gp_widget_get_child_by_name(*rootconfig, name.c_str(), child);
-  
+
   // name not found --> path specified
   // recurse until the specified child is found
   if (ret != GP_OK) {
@@ -199,17 +199,17 @@ int GPCamera::getConfigWidget(get_config_request *req, std::string name, CameraW
   		}
   		free (newname);
   	}
-  	return GP_OK;  
+  	return GP_OK;
 }
 
 int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode>::Tree &tree){
   int ret,n,i;
   char* label, *name, *uselabel;
-  
+
   gp_widget_get_label (root,(const char**)&label);
   ret = gp_widget_get_name (root, (const char**)&name);
-  
-	TreeNode node;	
+
+	TreeNode node;
   node.value = root;
   node.context  = req->context;
 	if (std::string((const char*)name).length())
@@ -222,14 +222,14 @@ int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode
 		CameraWidget *child;
 		ret = gp_widget_get_child(root, i, &child);
 		if (ret != GP_OK)
-			continue;			
+			continue;
 		enumConfig(req, child, node.subtree);
 	}
   tree[uselabel] = node;
-  return GP_OK;  
+  return GP_OK;
 }
 
-int 
+int
 GPCamera::getCameraFile(take_picture_request *req, CameraFile **file){
   int retval = GP_OK;
   int fd;
@@ -251,15 +251,15 @@ GPCamera::getCameraFile(take_picture_request *req, CameraFile **file){
     }
   }else{
     return gp_file_new(file);
-  }  
-  
+  }
+
   if (fd == -1) {
 	    if (errno == EACCES) {
 	        gp_context_error (req->context, "Permission denied");
 	    }
       return errno;
 	}
-  if(fd>=0){  
+  if(fd>=0){
   	retval = gp_file_new_from_fd(file, fd);
   	if (retval != GP_OK) {
   		::close(fd);
@@ -268,8 +268,8 @@ GPCamera::getCameraFile(take_picture_request *req, CameraFile **file){
   return retval;
 }
 
-void 
-GPCamera::downloadPicture(take_picture_request *req){    
+void
+GPCamera::downloadPicture(take_picture_request *req){
 	CameraFile *file;
   int retval;
   CameraFileType type;
@@ -287,26 +287,26 @@ GPCamera::downloadPicture(take_picture_request *req){
   }
   if(folder.str().length() == 0)
     folder<<"/";
-    
+
   retval = getCameraFile(req, &file);
-  
+
   if (retval == GP_OK) {
 	  retval = gp_camera_file_get ( req->camera, folder.str().c_str(), name.c_str(), GP_FILE_TYPE_NORMAL, file, req->context);
-  } else {    
+  } else {
     req->ret=retval;
     return;
   }
-	
+
 	// Fallback to downloading into buffer
 	if(retval == GP_OK && req->target_path.empty()){
 	  retval = gp_file_get_data_and_size (file, &req->data, &req->length);
 	}
-	
+
   if(retval == GP_OK){
     retval = gp_camera_file_delete(req->camera, folder.str().c_str(), name.c_str(), req->context);
   }
 
-  if(gp_file_get_type(file, &type) == GP_OK && type == GP_FILE_ACCESSTYPE_FD){
+  if(gp_file_get_type(file, &type) == GP_OK && type == GP_FILE_TYPE_NORMAL){
     gp_file_free(file);
   }
   req->ret=retval;
@@ -316,18 +316,18 @@ void
 GPCamera::capturePreview(take_picture_request *req){
   int retval;
   CameraFileType type;
-  
+
   CameraFile *file;
-  
+
   retval = getCameraFile(req, &file);
-  
+
   if(retval == GP_OK){
     retval = gp_camera_capture_preview(req->camera, file, req->context);
   }
-  if(retval == GP_OK && gp_file_get_type(file, &type) == GP_OK && type == GP_FILE_ACCESSTYPE_FD){
+  if(retval == GP_OK && gp_file_get_type(file, &type) == GP_OK && type == GP_FILE_TYPE_NORMAL){
     gp_file_free(file);
   }
-  req->ret = retval;  
+  req->ret = retval;
 }
 
 void
