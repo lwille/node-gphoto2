@@ -10,10 +10,7 @@
 #include <list>
 #include <map>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wall"
 #include "cvv8/v8-convert.hpp"
-#pragma clang diagnostic pop
 
 
 #define ASYNC_FN(NAME)\
@@ -30,7 +27,7 @@ static void NAME(uv_work_t* req);
   if (args.Length() < (N))                                              \
     return ThrowException(Exception::TypeError(                         \
                              String::New("Expected " #N "arguments")));
-                             
+
 #define ADD_PROTOTYPE_METHOD(class, name, method) \
 class ## _ ## name ## _symbol = NODE_PSYMBOL(#name); \
 NODE_SET_PROTOTYPE_METHOD(constructor_template, #name, method);
