@@ -14,7 +14,6 @@
         '-lgphoto2_port'
       ],
       'cflags!': ['-fno-exceptions'],
-      'cflags_cc': ['-fcxx-exceptions'],
       'target_arch': 'x64',
       'conditions': [
         ['OS=="mac"', {
