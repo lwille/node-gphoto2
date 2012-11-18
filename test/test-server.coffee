@@ -1,7 +1,7 @@
 process.title = 'node-gphoto2 test program'
 
 
-GPhoto = require "../main"
+GPhoto = require "../build/Release/gphoto2"
 fs     = require "fs"
 gphoto = new GPhoto.GPhoto2()
 express = require 'express'
@@ -21,7 +21,7 @@ gphoto.list (cameras)->
   console.log "found #{cameras.length} cameras"
   # select first Canon camera
   camera = _(cameras).chain().filter((camera)->camera.model.match /Canon/).first().value()
-  # exit if no Canon camera is connected 
+  # exit if no Canon camera is connected
   process.exit(-1) unless camera
   # retrieve available configuration settings
   console.log "loading #{camera.model} settings"
@@ -61,7 +61,7 @@ app.put '/settings/:name', (req, res)->
         res.send 404, JSON.stringify(er)
       else
         res.send 200
-    
+
 # get configuration
 app.get '/settings', (req, res)->
   unless camera
@@ -82,7 +82,7 @@ app.get '/download/*', (req, res)->
         else
           res.header 'Content-Type', 'image/jpeg'
           res.send data
-          
+
 app.get '/takePicture', (req, res)->
   unless camera
     res.send 404, 'Camera not connected'
@@ -97,7 +97,7 @@ app.get '/takePicture', (req, res)->
         else
           res.header 'Content-Type', 'image/jpeg'
           res.send data
-        
+
 app.get '/preview*', (req, res)->
   unless camera
     res.send 404, 'Camera not connected'
@@ -109,10 +109,10 @@ app.get '/preview*', (req, res)->
         tmp = preview_listeners
         preview_listeners = new Array()
         d = Date.parse(new Date())
-      
+
         for listener in tmp
           unless er
-            listener.writeHead 200, 'Content-Type': 'image/jpeg', 'Content-Length':data.length                
+            listener.writeHead 200, 'Content-Type': 'image/jpeg', 'Content-Length':data.length
             listener.write data
           else
             listener.writeHead 500

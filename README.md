@@ -8,13 +8,13 @@ The included test application currently allows you to
 * query a list of available configuration options
 * query the values of specific configuration options
 
-The test suite can be run using ``npm test``. There's also a small test application in test/test-server.coffee which runs on http://localhost:1337 and allows to change camera settings and to 
+The test suite can be run using ``npm test``. There's also a small test application in test/test-server.coffee which runs on http://localhost:1337 and allows to change camera settings and to
 take pictures.
 
 ## Prerequisites
-* Node.js ~0.6.5
-* NPM ~1.1.0
-* libgphoto2 ~2.4.11 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* Node.js ~0.8.14
+* NPM ~1.1.65
+* libgphoto2 ~2.4.14 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * clang compiler
 
 ## Installation
@@ -29,12 +29,12 @@ GPhoto.list(function(list){console.log(list[0].model)});
 
 // get configuration tree
 camera.getConfig(function(er, settings){
-  console.log(settings) 
+  console.log(settings)
 
 })
 // Set configuration values
 camera.setConfigValue('capturetarget', 1, function(er){
-  //...  
+  //...
 })
 
 // Take picture with camera object obtained from list()
@@ -49,7 +49,7 @@ camera.takePicture({download:false}, function(er, path){
 
 // Take picture and download it to filesystem
 camera.takePicture({
-    download:true, 
+    download:true,
     targetPath:'/tmp/foo.XXXXX'
   }, function(er, tmpname){
     fs.rename(tmpname, './picture.jpg')
@@ -57,7 +57,7 @@ camera.takePicture({
 
 // Download a picture from camera
 camera.downloadPicture({
-    cameraPath:'/store_00020001/DCIM/100CANON/IMG_1231.JPG', 
+    cameraPath:'/store_00020001/DCIM/100CANON/IMG_1231.JPG',
     targetPath:'/tmp/foo.XXXXX'
   }, function(er, tmpname){
     fs.rename(tmpname, './picture.jpg')
