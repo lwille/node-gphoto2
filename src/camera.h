@@ -3,28 +3,28 @@
   #include "binding.h"
   #include "gphoto.h"
   namespace cv = cvv8;
-  
+
   // Class for templated typedef's
   // Initialize as A<Typename>::Tree etc.
   template <typename T>
   class A {
-  private:    
+  private:
     A(void) {};
   public:
     typedef std::map<std::string, T> Tree;
   };
-  
-  
+
+
   struct TreeNode{
     CameraWidget* value;
     GPContext *context;
     A<TreeNode>::Tree subtree;
     TreeNode(){};
   };
-  
+
   using namespace v8;
   typedef std::list<std::string> StringList;
-  
+
   static Persistent<String> camera_getConfig_symbol;
   static Persistent<String> camera_getConfigValue_symbol;
   static Persistent<String> camera_setConfigValue_symbol;
@@ -42,7 +42,7 @@
     Camera     *camera_;
   	CameraWidget *config_;
     bool isOpen(){return this->camera_ ? true : false;};
-    
+
     struct take_picture_request {
       Persistent<Function> cb;
       Camera *camera;
@@ -50,7 +50,7 @@
       CameraFile *file;
       GPContext *context;
       const char *data;
-      size_t length;
+      unsigned long int length;
       int ret;
       bool download;
       bool preview;
@@ -63,7 +63,7 @@
       GPCamera  *cameraObject;
       Camera    *camera;
       GPContext *context;
-      CameraWidget *root;      
+      CameraWidget *root;
       int ret;
       StringList keys;
       A<TreeNode>::Tree settings;
@@ -88,7 +88,7 @@
     static void downloadPicture(take_picture_request *req);
     static int getCameraFile(take_picture_request *req, CameraFile **file);
     bool close();
-    
+
     public:
       GPCamera(Handle<External> js_gphoto, std::string  model, std::string  port);
       ~GPCamera();
@@ -113,5 +113,5 @@
       void setCamera(Camera *camera){this->camera_=camera;};
       Camera* getCamera();
   };
-  
+
 #endif
