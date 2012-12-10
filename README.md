@@ -17,6 +17,18 @@ take pictures.
 * libgphoto2 ~2.4.14 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * clang compiler
 
+## Test prerequisites
+* async
+* coffee-script
+* mocha
+* should
+* sinon
+
+## Test-server prerequisites
+* express
+* jade
+* underscore
+
 ## Installation
     npm install gphoto2
 
