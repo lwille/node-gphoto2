@@ -17,21 +17,34 @@ take pictures.
 * libgphoto2 ~2.4.14 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * clang compiler
 
+## Test prerequisites
+* async
+* coffee-script
+* mocha
+* should
+* sinon
+
+## Test-server prerequisites
+* express
+* jade
+* underscore
+
 ## Installation
     npm install gphoto2
 
 ## Usage
 ```javascript
-GPhoto = new require('node-gphoto2').GPhoto2();
+gphoto2 = require('gphoto2');
+GPhoto = new gphoto2.GPhoto2();
 
-// List cameras
+// List cameras / assign list item to variable to use below options
 GPhoto.list(function(list){console.log(list[0].model)});
 
 // get configuration tree
 camera.getConfig(function(er, settings){
-  console.log(settings)
+  console.log(settings);
+});
 
-})
 // Set configuration values
 camera.setConfigValue('capturetarget', 1, function(er){
   //...
@@ -40,31 +53,31 @@ camera.setConfigValue('capturetarget', 1, function(er){
 // Take picture with camera object obtained from list()
 camera.takePicture({download:true}, function(er, data){
   fs.writeFile("picture.jpg", data);
-})
+});
 
 // Take picture without downloading immediately
 camera.takePicture({download:false}, function(er, path){
-  console.log(path)
-})
+  console.log(path);
+});
 
 // Take picture and download it to filesystem
 camera.takePicture({
     download:true,
     targetPath:'/tmp/foo.XXXXX'
   }, function(er, tmpname){
-    fs.rename(tmpname, './picture.jpg')
-})
+    fs.rename(tmpname, './picture.jpg');
+});
 
 // Download a picture from camera
 camera.downloadPicture({
     cameraPath:'/store_00020001/DCIM/100CANON/IMG_1231.JPG',
     targetPath:'/tmp/foo.XXXXX'
   }, function(er, tmpname){
-    fs.rename(tmpname, './picture.jpg')
-})
+    fs.rename(tmpname, './picture.jpg');
+});
 
 // Get preview picture (from AF Sensor, fails silently if unsupported)
 camera.getPreview(function(data){
   fs.writeFile("picture.jpg", data);
-})
+});
 ```
