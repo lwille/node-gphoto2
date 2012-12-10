@@ -22,9 +22,10 @@ take pictures.
 
 ## Usage
 ```javascript
-GPhoto = new require('gphoto2').GPhoto2();
+gphoto2 = require('gphoto2');
+GPhoto = new gphoto2.GPhoto2();
 
-// List cameras
+// List cameras / assign list item to variable to use below options
 GPhoto.list(function(list){console.log(list[0].model)});
 
 // get configuration tree
