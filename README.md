@@ -33,51 +33,57 @@ take pictures.
     npm install gphoto2
 
 ## Usage
+This example only shows how to achieve certain tasks, it's not meant to be executed without any asynchronous control flow logic.
+
 ```javascript
 gphoto2 = require('gphoto2');
 GPhoto = new gphoto2.GPhoto2();
 
 // List cameras / assign list item to variable to use below options
-GPhoto.list(function(list){console.log(list[0].model)});
+GPhoto.list(function(list){
+  if(list.length === 0) return;
+  var camera = list[0];
+  console.log("Found", camera.model);
 
-// get configuration tree
-camera.getConfig(function(er, settings){
-  console.log(settings);
-});
+  // get configuration tree
+  camera.getConfig(function(er, settings){
+    console.log(settings);
+  });
 
-// Set configuration values
-camera.setConfigValue('capturetarget', 1, function(er){
-  //...
-})
+  // Set configuration values
+  camera.setConfigValue('capturetarget', 1, function(er){
+    //...
+  })
 
-// Take picture with camera object obtained from list()
-camera.takePicture({download:true}, function(er, data){
-  fs.writeFile("picture.jpg", data);
-});
+  // Take picture with camera object obtained from list()
+  camera.takePicture({download:true}, function(er, data){
+    fs.writeFile("picture.jpg", data);
+  });
 
-// Take picture without downloading immediately
-camera.takePicture({download:false}, function(er, path){
-  console.log(path);
-});
+  // Take picture without downloading immediately
+  camera.takePicture({download:false}, function(er, path){
+    console.log(path);
+  });
 
-// Take picture and download it to filesystem
-camera.takePicture({
-    download:true,
-    targetPath:'/tmp/foo.XXXXX'
-  }, function(er, tmpname){
-    fs.rename(tmpname, './picture.jpg');
-});
+  // Take picture and download it to filesystem
+  camera.takePicture({
+      download:true,
+      targetPath:'/tmp/foo.XXXXX'
+    }, function(er, tmpname){
+      fs.rename(tmpname, './picture.jpg');
+  });
 
-// Download a picture from camera
-camera.downloadPicture({
-    cameraPath:'/store_00020001/DCIM/100CANON/IMG_1231.JPG',
-    targetPath:'/tmp/foo.XXXXX'
-  }, function(er, tmpname){
-    fs.rename(tmpname, './picture.jpg');
-});
+  // Download a picture from camera
+  camera.downloadPicture({
+      cameraPath:'/store_00020001/DCIM/100CANON/IMG_1231.JPG',
+      targetPath:'/tmp/foo.XXXXX'
+    }, function(er, tmpname){
+      fs.rename(tmpname, './picture.jpg');
+  });
 
-// Get preview picture (from AF Sensor, fails silently if unsupported)
-camera.getPreview(function(data){
-  fs.writeFile("picture.jpg", data);
+  // Get preview picture (from AF Sensor, fails silently if unsupported)
+  camera.getPreview(function(data){
+    fs.writeFile("picture.jpg", data);
+  });
 });
 ```
