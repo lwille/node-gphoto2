@@ -22,7 +22,7 @@ take pictures.
 
 ## Usage
 ```javascript
-GPhoto = new require('node-gphoto2').GPhoto2();
+GPhoto = new require('gphoto2').GPhoto2();
 
 // List cameras
 GPhoto.list(function(list){console.log(list[0].model)});
