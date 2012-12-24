@@ -14,7 +14,7 @@ take pictures.
 ## Prerequisites
 * Node.js ~0.8.14
 * NPM ~1.1.65
-* libgphoto2 ~2.4.14 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* libgphoto2 ~2.5.0 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * clang compiler
 
 ## Test prerequisites
