@@ -2,14 +2,14 @@
 #define __GPHOTO_H
 #include "binding.h"
 using namespace v8;
-#define OLDLIB
+
 class GPCamera;
 static Persistent<String> gphoto_test_symbol;
 static Persistent<String> gphoto_list_symbol;
 static Persistent<String> gphoto_onLog_symbol;
-class GPhoto2: public node::ObjectWrap {  
+class GPhoto2: public node::ObjectWrap {
   GPContext * context_;
-  
+
   GPPortInfoList   *portinfolist_;
   CameraAbilitiesList  *abilities_;
   Persistent<Function> logCallBack;
@@ -21,7 +21,7 @@ class GPhoto2: public node::ObjectWrap {
       GPContext           *context;
   };
   static void EIO_List(uv_work_t *req);
-  static void EIO_ListCb(uv_work_t *req);  
+  static void EIO_ListCb(uv_work_t *req);
   public:
     static Persistent<FunctionTemplate> constructor_template;
     Camera * _camera;
@@ -42,13 +42,8 @@ class GPhoto2: public node::ObjectWrap {
     int openCamera(GPCamera *camera);
     int closeCamera(GPCamera *camera);
     static void LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);
-    
+
 };
-#ifdef OLDLIB
-extern void onError(GPContext *context, const char *str, va_list args, void *unused);
-extern void onStatus(GPContext *context, const char *str,va_list args, void *unused);
-#else
 static void onError(GPContext *context, const char *str, void *unused);
 static void onStatus(GPContext *context, const char *str, void *unused);
-#endif
 #endif
