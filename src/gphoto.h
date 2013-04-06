@@ -21,7 +21,7 @@ class GPhoto2: public node::ObjectWrap {
       GPContext           *context;
   };
   static void EIO_List(uv_work_t *req);
-  static void EIO_ListCb(uv_work_t *req);
+  static void EIO_ListCb(uv_work_t *req, int status);
   public:
     static Persistent<FunctionTemplate> constructor_template;
     Camera * _camera;
@@ -44,6 +44,3 @@ class GPhoto2: public node::ObjectWrap {
     static void LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);
 
 };
-static void onError(GPContext *context, const char *str, void *unused);
-static void onStatus(GPContext *context, const char *str, void *unused);
-#endif

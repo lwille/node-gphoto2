@@ -4,6 +4,14 @@
 #include <string.h>
 Persistent<FunctionTemplate> GPhoto2::constructor_template;
 
+static void onError (GPContext *context, const char *str, void *data) {
+  printf ("### %s\n", str);
+}
+
+static void onStatus (GPContext *context, const char *str, void *data) {
+  printf ("### %s\n", str);
+}
+
 GPhoto2::GPhoto2() : portinfolist_(NULL), abilities_(NULL) {
   this->context_ = gp_context_new();
   gp_context_set_error_func (this->context_, onError, NULL);
@@ -100,7 +108,7 @@ void GPhoto2::EIO_List(uv_work_t *req){
     gphoto->setAbilitiesList(abilitiesList);
     gphoto->setPortInfoList(portInfoList);
 }
-void  GPhoto2::EIO_ListCb(uv_work_t *req){
+void  GPhoto2::EIO_ListCb(uv_work_t *req, int status=0){
 
     HandleScope scope;
     int i;
@@ -157,14 +165,4 @@ int GPhoto2::closeCamera(GPCamera *p){
   this->Unref();
   //printf("Closing camera %s", p->getModel().c_str());
   return 0;
-}
-
-void
-onError (GPContext *context, const char *str, void *data)
-{
-	printf ("### %s\n", str);
-}
-
-static void onStatus (GPContext *context, const char *str, void *data) {
-	printf ("### %s\n", str);
 }

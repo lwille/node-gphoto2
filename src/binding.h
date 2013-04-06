@@ -16,7 +16,8 @@
 #define ASYNC_FN(NAME)\
 static void NAME(uv_work_t* req);
 
-#define ASYNC_CB ASYNC_FN
+#define ASYNC_CB(NAME)\
+static void NAME(uv_work_t* req, int status);
 
 #define DO_ASYNC(BATON,ASYNC,AFTER)\
   uv_work_t* req = new uv_work_t();\
