@@ -108,7 +108,7 @@ void GPhoto2::EIO_List(uv_work_t *req){
     gphoto->setAbilitiesList(abilitiesList);
     gphoto->setPortInfoList(portInfoList);
 }
-void  GPhoto2::EIO_ListCb(uv_work_t *req, int status=0){
+void  GPhoto2::EIO_ListCb(uv_work_t *req, int status){
 
     HandleScope scope;
     int i;

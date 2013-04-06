@@ -13,7 +13,7 @@ GPCamera::GPCamera(Handle<External> js_gphoto, std::string model, std::string po
   GPhoto2 *gphoto = static_cast<GPhoto2*>(js_gphoto->Value());
   this->gphoto = Persistent<External>::New(js_gphoto);
   this->gphoto_ = gphoto;
-  pthread_mutex_init(&this->cameraMutex, NULL);
+  uv_mutex_init(&this->cameraMutex);
 }
 GPCamera::~GPCamera(){
   printf("Camera destructor\n");
@@ -21,7 +21,7 @@ GPCamera::~GPCamera(){
   this->gphoto.Dispose();
   this->close();
 
-  pthread_mutex_destroy(&this->cameraMutex);
+  uv_mutex_destroy(&this->cameraMutex);
 }
 
 void
@@ -96,7 +96,7 @@ GPCamera::EIO_Capture(uv_work_t *_req){
   req->cameraObject->unlock();
 }
 
-void GPCamera::EIO_CaptureCb(uv_work_t *req, int status=0){
+void GPCamera::EIO_CaptureCb(uv_work_t *req, int status){
   HandleScope scope;
   take_picture_request *capture_req = (take_picture_request*) req->data;
 
@@ -238,7 +238,7 @@ void GPCamera::EIO_GetConfig(uv_work_t *req){
     config_req->ret = ret;
   }
 }
-void GPCamera::EIO_GetConfigCb(uv_work_t *req, int status=0){
+void GPCamera::EIO_GetConfigCb(uv_work_t *req, int status){
   HandleScope scope;
   get_config_request *config_req = (get_config_request*)req->data;
 
@@ -312,7 +312,7 @@ GPCamera::EIO_SetConfigValue(uv_work_t *req){
   config_req->cameraObject->unlock();
 }
 void
-GPCamera::EIO_SetConfigValueCb(uv_work_t *req, int status=0){
+GPCamera::EIO_SetConfigValueCb(uv_work_t *req, int status){
   HandleScope scope;
   set_config_request *config_req = (set_config_request *)req->data;
 

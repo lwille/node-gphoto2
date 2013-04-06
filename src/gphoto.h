@@ -44,3 +44,4 @@ class GPhoto2: public node::ObjectWrap {
     static void LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);
 
 };
+#endif

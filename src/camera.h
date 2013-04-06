@@ -31,9 +31,9 @@
   static Persistent<String> camera_takePicture_symbol;
   static Persistent<String> camera_downloadPicture_symbol;
   class GPCamera : public node::ObjectWrap {
-    pthread_mutex_t cameraMutex;
-    void lock(){pthread_mutex_lock(&this->cameraMutex);};
-    void unlock(){pthread_mutex_unlock(&this->cameraMutex);};
+    uv_mutex_t cameraMutex;
+    void lock(){uv_mutex_lock(&this->cameraMutex);};
+    void unlock(){uv_mutex_unlock(&this->cameraMutex);};
 
     std::string model_;
     std::string port_;
