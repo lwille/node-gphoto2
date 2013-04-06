@@ -82,7 +82,7 @@ GPhoto.list(function(list){
   });
 
   // Get preview picture (from AF Sensor, fails silently if unsupported)
-  camera.getPreview(function(data){
+  camera.takePicture({preview:true}, function(er, data){
     fs.writeFile("picture.jpg", data);
   });
 });
