@@ -19,7 +19,7 @@ class GPhoto2: public node::ObjectWrap {
     std::string              message;
     Persistent<Function>    cb;
   };
-  static void UV_LogCallback(uv_async_t*, int);
+  static void Async_LogCallback(uv_async_t*, int);
 
   struct list_request {
       Persistent<Function> cb;
@@ -28,8 +28,8 @@ class GPhoto2: public node::ObjectWrap {
       Persistent<Object>	This;
       GPContext           *context;
   };
-  static void EIO_List(uv_work_t *req);
-  static void EIO_ListCb(uv_work_t *req, int status);
+  static void Async_List(uv_work_t *req);
+  static void Async_ListCb(uv_work_t *req, int status);
   public:
     static Persistent<FunctionTemplate> constructor_template;
     Camera * _camera;

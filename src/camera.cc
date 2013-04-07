@@ -82,12 +82,12 @@ GPCamera::TakePicture(const Arguments& args) {
   picture_req->cameraObject = camera;
 
   picture_req->context = gp_context_new();
-  DO_ASYNC(picture_req, EIO_Capture, EIO_CaptureCb);
+  DO_ASYNC(picture_req, Async_Capture, Async_CaptureCb);
   return Undefined();
 }
 
 void
-GPCamera::EIO_Capture(uv_work_t *_req){
+GPCamera::Async_Capture(uv_work_t *_req){
   take_picture_request *req = (take_picture_request *)_req->data;
   req->cameraObject->lock();
   if(req->preview){
@@ -98,7 +98,7 @@ GPCamera::EIO_Capture(uv_work_t *_req){
   req->cameraObject->unlock();
 }
 
-void GPCamera::EIO_CaptureCb(uv_work_t *req, int status){
+void GPCamera::Async_CaptureCb(uv_work_t *req, int status){
   HandleScope scope;
   take_picture_request *capture_req = (take_picture_request*) req->data;
 
@@ -164,11 +164,11 @@ GPCamera::DownloadPicture(const Arguments& args){
 
   picture_req->path     = cv::CastFromJS<std::string>(source);
   gp_camera_ref(picture_req->camera);
-  DO_ASYNC(picture_req, EIO_DownloadPicture, EIO_CaptureCb);
+  DO_ASYNC(picture_req, Async_DownloadPicture, Async_CaptureCb);
   return Undefined();
 }
 
-void GPCamera::EIO_DownloadPicture(uv_work_t *_req){
+void GPCamera::Async_DownloadPicture(uv_work_t *_req){
   take_picture_request *req = (take_picture_request *)_req->data;
 
   req->cameraObject->lock();
@@ -192,9 +192,9 @@ GPCamera::GetConfig(const Arguments& args) {
   config_req->context = gp_context_new();
   config_req->cb = Persistent<Function>::New(cb);
 
-  DO_ASYNC(config_req, EIO_GetConfig, EIO_GetConfigCb);
+  DO_ASYNC(config_req, Async_GetConfig, Async_GetConfigCb);
 
-  //eio_custom(EIO_GetConfig, EIO_PRI_DEFAULT, EIO_GetConfigCb, config_req);
+  //Async_custom(Async_GetConfig, Async_PRI_DEFAULT, Async_GetConfigCb, config_req);
   //ev_ref(EV_DEFAULT_UC);
   return Undefined();
 }
@@ -225,7 +225,7 @@ namespace cvv8 {
 
 
 
-void GPCamera::EIO_GetConfig(uv_work_t *req){
+void GPCamera::Async_GetConfig(uv_work_t *req){
   get_config_request *config_req = (get_config_request*)req->data;
   int ret;
 
@@ -240,7 +240,7 @@ void GPCamera::EIO_GetConfig(uv_work_t *req){
     config_req->ret = ret;
   }
 }
-void GPCamera::EIO_GetConfigCb(uv_work_t *req, int status){
+void GPCamera::Async_GetConfigCb(uv_work_t *req, int status){
   HandleScope scope;
   get_config_request *config_req = (get_config_request*)req->data;
 
@@ -301,12 +301,12 @@ GPCamera::SetConfigValue(const Arguments& args) {
   config_req->key = *key;
 
   gp_camera_ref(config_req->camera);
-  DO_ASYNC(config_req, EIO_SetConfigValue, EIO_SetConfigValueCb);
+  DO_ASYNC(config_req, Async_SetConfigValue, Async_SetConfigValueCb);
 
   return Undefined();
 }
 void
-GPCamera::EIO_SetConfigValue(uv_work_t *req){
+GPCamera::Async_SetConfigValue(uv_work_t *req){
   set_config_request *config_req = (set_config_request *)req->data;
 
   config_req->cameraObject->lock();
@@ -314,7 +314,7 @@ GPCamera::EIO_SetConfigValue(uv_work_t *req){
   config_req->cameraObject->unlock();
 }
 void
-GPCamera::EIO_SetConfigValueCb(uv_work_t *req, int status){
+GPCamera::Async_SetConfigValueCb(uv_work_t *req, int status){
   HandleScope scope;
   set_config_request *config_req = (set_config_request *)req->data;
 

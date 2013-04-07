@@ -68,14 +68,14 @@ Handle<Value> GPhoto2::List(const Arguments &args){
     list_req->This = Persistent<Object>::New(args.This());
     list_req->context  = gp_context_new();
 
-    DO_ASYNC(list_req, EIO_List, EIO_ListCb);
+    DO_ASYNC(list_req, Async_List, Async_ListCb);
 
     gphoto->Ref();
     return Undefined();
 }
 
 
-void GPhoto2::UV_LogCallback(uv_async_t *handle, int status) {
+void GPhoto2::Async_LogCallback(uv_async_t *handle, int status) {
   log_request *message = (log_request*)handle->data;
 
   HandleScope scope;
@@ -97,7 +97,7 @@ void GPhoto2::LogHandler(GPLogLevel level, const char *domain, const char *str, 
   message->domain         = std::string(domain);
   message->message        = std::string(str);
   message->cb             = static_cast<Function*>(data);
-  uv_async_init(uv_default_loop(), &asyncLog, GPhoto2::UV_LogCallback);
+  uv_async_init(uv_default_loop(), &asyncLog, GPhoto2::Async_LogCallback);
   asyncLog.data = (void*)message;
 
   uv_async_send(&asyncLog);
@@ -115,7 +115,7 @@ Handle<Value> GPhoto2::SetLogHandler(const Arguments &args){
   );
 }
 
-void GPhoto2::EIO_List(uv_work_t *req){
+void GPhoto2::Async_List(uv_work_t *req){
     list_request *list_req = (list_request *)req->data;
     GPhoto2 *gphoto = list_req->gphoto;
     GPPortInfoList *portInfoList = gphoto->getPortInfoList();
@@ -125,7 +125,7 @@ void GPhoto2::EIO_List(uv_work_t *req){
     gphoto->setAbilitiesList(abilitiesList);
     gphoto->setPortInfoList(portInfoList);
 }
-void  GPhoto2::EIO_ListCb(uv_work_t *req, int status){
+void  GPhoto2::Async_ListCb(uv_work_t *req, int status){
 
     HandleScope scope;
     int i;
