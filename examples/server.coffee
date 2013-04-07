@@ -7,9 +7,6 @@ gphoto = new GPhoto.GPhoto2()
 express = require 'express'
 _      = require 'underscore'
 
-
-_gc = ()->gc() if typeof gc is 'function'
-
 requests = {}
 preview_listeners = new Array()
 
@@ -17,7 +14,6 @@ camera = undefined
 
 # Fetch a list of cameras and get the first one
 gphoto.list (cameras)->
-  _gc()
   console.log "found #{cameras.length} cameras"
   # select first Canon camera
   camera = _(cameras).chain().filter((camera)->camera.model.match /Canon/).first().value()
@@ -37,7 +33,7 @@ console.log __dirname
 app.use express.static __dirname + '/public'
 app.use express.bodyParser()
 
-app.engine '.html', require('jade')
+app.engine '.html', require('jade').__express
 app.get '/', (req, res)->
   res.render 'index.html'
 
@@ -104,7 +100,7 @@ app.get '/preview*', (req, res)->
   else
     preview_listeners.push res
     if preview_listeners.length is 1
-      camera.getPreview (er, data)->
+      camera.takePicture preview:true, (er, data)->
         logRequests()
         tmp = preview_listeners
         preview_listeners = new Array()

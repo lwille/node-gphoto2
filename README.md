@@ -12,12 +12,12 @@ The test suite can be run using ``npm test``. There's also a small test applicat
 take pictures.
 
 ## Prerequisites
-* Node.js ~0.8.14
-* NPM ~1.1.65
+* Node.js ~0.10.0
+* NPM ~1.2.15
 * libgphoto2 ~2.5.0 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * clang compiler
 
-## Test prerequisites
+## Test/dev prerequisites
 * async
 * coffee-script
 * mocha
