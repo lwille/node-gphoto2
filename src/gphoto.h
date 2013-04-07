@@ -12,7 +12,15 @@ class GPhoto2: public node::ObjectWrap {
 
   GPPortInfoList   *portinfolist_;
   CameraAbilitiesList  *abilities_;
-  Persistent<Function> logCallBack;
+
+  struct log_request {
+    int                      level;
+    std::string              domain;
+    std::string              message;
+    Persistent<Function>    cb;
+  };
+  static void UV_LogCallback(uv_async_t*, int);
+
   struct list_request {
       Persistent<Function> cb;
       GPhoto2             *gphoto;
@@ -41,7 +49,7 @@ class GPhoto2: public node::ObjectWrap {
     void setAbilitiesList(CameraAbilitiesList *p){this->abilities_=p;};
     int openCamera(GPCamera *camera);
     int closeCamera(GPCamera *camera);
-    static void LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);
+    static void LogHandler(GPLogLevel level, const char *domain, const char *str, void *data);
 
 };
 #endif

@@ -23,6 +23,9 @@ describe "node-gphoto2", ()->
     @timeout 5000
     exec "killall PTPCamera", ()=>
       gphoto = new GPhoto.GPhoto2()
+      gphoto.onLog 2, (level, domain, message)->
+        console.error "%s: %s", domain, message
+
       gphoto.list (list)->
         cameras = list
         return next "No cameras found" unless cameras[0]

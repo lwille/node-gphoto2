@@ -5,11 +5,11 @@
 Persistent<FunctionTemplate> GPhoto2::constructor_template;
 
 static void onError (GPContext *context, const char *str, void *data) {
-  printf ("### %s\n", str);
+  fprintf (stderr, "### %s\n", str);
 }
 
 static void onStatus (GPContext *context, const char *str, void *data) {
-  printf ("### %s\n", str);
+  fprintf (stderr, "### %s\n", str);
 }
 
 GPhoto2::GPhoto2() : portinfolist_(NULL), abilities_(NULL) {
@@ -23,7 +23,6 @@ GPhoto2::~GPhoto2(){
 }
 
 void GPhoto2::Initialize(Handle<Object> target) {
-
   HandleScope scope;
   Local<FunctionTemplate> t = FunctionTemplate::New(New);
 
@@ -69,33 +68,51 @@ Handle<Value> GPhoto2::List(const Arguments &args){
     list_req->This = Persistent<Object>::New(args.This());
     list_req->context  = gp_context_new();
 
-    //eio_custom(EIO_List, EIO_PRI_DEFAULT, EIO_ListCb, list_req);
-    //ev_ref(EV_DEFAULT_UC);
     DO_ASYNC(list_req, EIO_List, EIO_ListCb);
 
     gphoto->Ref();
     return Undefined();
 }
 
-void GPhoto2::LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data){
-  HandleScope scope;
-  GPhoto2 *instance = (GPhoto2*)data;
-  if(instance->logCallBack != Undefined()){
 
-    Handle<Value> argv[] = {cvv8::CastToJS(domain), cvv8::CastToJS(format), cvv8::CastToJS(args)};
-    instance->logCallBack->Call(Context::GetCurrent()->Global(), 3, argv);
-  }
+void GPhoto2::UV_LogCallback(uv_async_t *handle, int status) {
+  log_request *message = (log_request*)handle->data;
+
+  HandleScope scope;
+  Local<Value> args[] = {
+    Local<Value>::New(Number::New(message->level)),
+    Local<Value>::New(String::New(message->domain.c_str())),
+    Local<Value>::New(String::New(message->message.c_str()))
+  };
+  message->cb->Call(message->cb, 3, args);
+  scope.Close(Undefined());
+  delete message;
+}
+
+void GPhoto2::LogHandler(GPLogLevel level, const char *domain, const char *str, void *data){
+  log_request *message    = new log_request();
+  static uv_async_t asyncLog;
+
+  message->level          = level;
+  message->domain         = std::string(domain);
+  message->message        = std::string(str);
+  message->cb             = static_cast<Function*>(data);
+  uv_async_init(uv_default_loop(), &asyncLog, GPhoto2::UV_LogCallback);
+  asyncLog.data = (void*)message;
+
+  uv_async_send(&asyncLog);
+  sleep(0); // allow the default thread to process the log entry
 }
 
 Handle<Value> GPhoto2::SetLogHandler(const Arguments &args){
   HandleScope scope;
-  // REQ_INT_ARG(0, level);
-  // REQ_FUN_ARG(1, cb);
+  REQ_ARGS(2);
+  REQ_INT_ARG(0, level);
+  REQ_FUN_ARG(1, cb);
 
-  // GPhoto2 *gphoto = ObjectWrap::Unwrap<GPhoto2>(args.This());
-  // gphoto->logCallBack = Persistent<Function>::New(cb);
-  // gp_log_add_func((GPLogLevel)level, GPhoto2::LogHandler, gphoto);
-  return Undefined();
+  return cvv8::CastToJS(
+    gp_log_add_func((GPLogLevel)level, (GPLogFunc)GPhoto2::LogHandler, (void *)*Persistent<Function>::New(cb))
+  );
 }
 
 void GPhoto2::EIO_List(uv_work_t *req){

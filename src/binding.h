@@ -2,7 +2,10 @@
 #define __BINDING_H
 
 #include <string>
+extern "C" {
 #include <gphoto2/gphoto2-camera.h>
+#include <gphoto2/gphoto2-port-log.h>
+}
 #include <cstdlib>
 #include <node.h>
 #include <node_buffer.h>

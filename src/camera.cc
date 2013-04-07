@@ -61,9 +61,11 @@ GPCamera::TakePicture(const Arguments& args) {
     Local<Value> socket  = options->Get(String::New("socket"));
     if(target->IsString()){
       picture_req->target_path = cv::CastFromJS<std::string>(target);
+      picture_req->download = true;
     }
     if(socket->IsString()){
       picture_req->socket_path = cv::CastFromJS<std::string>(socket);
+      picture_req->download = true;
     }
     if(dl->IsBoolean()){
       picture_req->download = dl->ToBoolean()->Value();
