@@ -15,6 +15,7 @@ take pictures.
 * Node.js ~0.10.0
 * NPM ~1.2.15
 * libgphoto2 ~2.5.0 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* pkg-config | dpkg (used for dependency checking)
 * clang compiler
 
 ## Test/dev prerequisites
@@ -30,7 +31,10 @@ take pictures.
 * underscore
 
 ## Installation
+After installing the dependencies, just install using:
     npm install gphoto2
+If it fails, please thoroughly check the output - link errors usually indicate missing dependencies.
+Also, the script tries to detect wether libgphoto2 is correctly installed - if this check fails although you properly installed it, please report :)
 
 ## Usage
 This example only shows how to achieve certain tasks, it's not meant to be executed without any asynchronous control flow logic.
