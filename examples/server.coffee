@@ -1,14 +1,14 @@
 process.title = 'node-gphoto2 test program'
+global[id] ?= require name for id, name of {
+  "fs"
+  "GPhoto":"../build/Release/gphoto2"
+  "express"
+  _: "underscore"
+}
 
-
-GPhoto = require "../build/Release/gphoto2"
-fs     = require "fs"
 gphoto = new GPhoto.GPhoto2()
-express = require 'express'
-_      = require 'underscore'
-
 requests = {}
-preview_listeners = new Array()
+preview_listeners = []
 
 camera = undefined
 
@@ -29,7 +29,6 @@ gphoto.list (cameras)->
 
 app = express()
 
-console.log __dirname
 app.use express.static __dirname + '/public'
 app.use express.bodyParser()
 
@@ -114,4 +113,4 @@ app.get '/preview*', (req, res)->
             listener.writeHead 500
           listener.end()
 
-app.listen 1337, "0.0.0.0"
+app.listen process.env.PORT || 1337, "0.0.0.0"
