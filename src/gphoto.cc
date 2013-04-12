@@ -1,6 +1,7 @@
 #include "gphoto.h"
 #include "camera.h"
 
+#include <unistd.h>
 #include <string.h>
 Persistent<FunctionTemplate> GPhoto2::constructor_template;
 
