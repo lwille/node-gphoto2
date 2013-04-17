@@ -15,9 +15,9 @@ cameras = undefined
 tempfiles = []
 
 checkJpegHeader = (buf)->
-  (buf[0]<<8|buf[1]).toString(16).should.equal 'ffd8' # start of image
-  (buf[2]<<8|buf[3]).toString(16).should.equal 'ffe1' # exif header
-
+  buf.readUInt16BE(0).toString(16).should.equal 'ffd8' # start of image
+  buf.readUInt16BE(2).toString(16).should.equal 'ffe1' # exif header
+  
 describe "node-gphoto2", ()->
   before (next)->
     @timeout 5000
