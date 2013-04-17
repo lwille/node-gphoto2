@@ -12,12 +12,13 @@ The test suite can be run using ``npm test``. There's also a small test applicat
 take pictures.
 
 ## Prerequisites
-* Node.js ~0.8.14
-* NPM ~1.1.65
+* Node.js ~0.10.0
+* NPM ~1.2.15
 * libgphoto2 ~2.5.0 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* pkg-config | dpkg (used for dependency checking)
 * clang compiler
 
-## Test prerequisites
+## Test/dev prerequisites
 * async
 * coffee-script
 * mocha
@@ -30,7 +31,10 @@ take pictures.
 * underscore
 
 ## Installation
+After installing the dependencies, just install using:
     npm install gphoto2
+If it fails, please thoroughly check the output - link errors usually indicate missing dependencies.
+Also, the script tries to detect wether libgphoto2 is correctly installed - if this check fails although you properly installed it, please report :)
 
 ## Usage
 This example only shows how to achieve certain tasks, it's not meant to be executed without any asynchronous control flow logic.
@@ -82,7 +86,7 @@ GPhoto.list(function(list){
   });
 
   // Get preview picture (from AF Sensor, fails silently if unsupported)
-  camera.getPreview(function(data){
+  camera.takePicture({preview:true}, function(er, data){
     fs.writeFile("picture.jpg", data);
   });
 });

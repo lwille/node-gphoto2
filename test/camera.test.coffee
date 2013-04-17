@@ -1,6 +1,5 @@
 global[id] ?= require name for id, name of {
   "sinon"
-  "path"
   "fs"
   "GPhoto":"../build/Release/gphoto2"
   "child_process"
@@ -15,13 +14,21 @@ should = require "should"
 cameras = undefined
 tempfiles = []
 
+checkJpegHeader = (buf)->
+  buf.readUInt16BE(0).toString(16).should.equal 'ffd8' # start of image
+  buf.readUInt16BE(2).toString(16).should.equal 'ffe1' # exif header
+  
 describe "node-gphoto2", ()->
   before (next)->
     @timeout 5000
     exec "killall PTPCamera", ()=>
       gphoto = new GPhoto.GPhoto2()
+      gphoto.onLog 2, (level, domain, message)->
+        console.error "%s: %s", domain, message
+
       gphoto.list (list)->
         cameras = list
+        return next "No cameras found" unless cameras[0]
         next()
 
   it 'should find attached cameras', ()->
@@ -55,13 +62,14 @@ describe "node-gphoto2", ()->
        cameras[0].takePicture download:true, (er, data)->
          should.not.exist er
          data.should.be.an.instanceOf Buffer
+         checkJpegHeader data
          done()
 
      it 'and download it to the file system', (done)->
        cameras[0].takePicture download:true, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
          should.not.exist er
          file.should.be.a 'string'
-         path.exists file, (exists)->
+         fs.exists file, (exists)->
            if exists
              tempfiles.push file
              done()
@@ -72,7 +80,7 @@ describe "node-gphoto2", ()->
        cameras[0].downloadPicture cameraPath:cameras[0].firstPicture, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
          should.not.exist er
          file.should.be.a 'string'
-         path.exists file, (exists)->
+         fs.exists file, (exists)->
            if exists
              tempfiles.push file
              done()
@@ -84,19 +92,21 @@ describe "node-gphoto2", ()->
       er.should.be.a 'number'
       done()
   describe 'should be able to take a preview picture', ()->
+    before (done)->
+      fs.unlink '/tmp/preview.sock', ()->done()
     it 'and send it over a socket', (done)->
       @timeout 25000
       server = net.createServer (c)->
         c.on 'end', ()->
           server.close()
           done()
-
       server.listen '/tmp/preview.sock'
       server.on 'error', ()->
         log arguments
       server.on 'listening', ()->
         cameras[0].takePicture preview:true, socket:'/tmp/preview.sock', (er)->
           should.not.exist er
+          done er
 
     # clean up our mess :)
     after ()->

@@ -305,17 +305,13 @@ GPCamera::downloadPicture(take_picture_request *req){
     retval = gp_camera_file_delete(req->camera, folder.str().c_str(), name.c_str(), req->context);
   }
 
-  if(!req->target_path.empty()){
-    gp_file_free(file);
-  }
+  gp_file_free(file);
   req->ret=retval;
 }
 
 void
 GPCamera::capturePreview(take_picture_request *req){
   int retval;
-  CameraFileType type;
-
   CameraFile *file;
 
   retval = getCameraFile(req, &file);
@@ -323,9 +319,11 @@ GPCamera::capturePreview(take_picture_request *req){
   if(retval == GP_OK){
     retval = gp_camera_capture_preview(req->camera, file, req->context);
   }
-  if(!req->target_path.empty()){
+
+  if(!(req->target_path.empty() || req->socket_path.empty())) {
     gp_file_free(file);
   }
+
   req->ret = retval;
 }
 

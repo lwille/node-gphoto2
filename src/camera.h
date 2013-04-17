@@ -31,9 +31,9 @@
   static Persistent<String> camera_takePicture_symbol;
   static Persistent<String> camera_downloadPicture_symbol;
   class GPCamera : public node::ObjectWrap {
-    pthread_mutex_t cameraMutex;
-    void lock(){pthread_mutex_lock(&this->cameraMutex);};
-    void unlock(){pthread_mutex_unlock(&this->cameraMutex);};
+    uv_mutex_t cameraMutex;
+    void lock(){uv_mutex_lock(&this->cameraMutex);};
+    void unlock(){uv_mutex_unlock(&this->cameraMutex);};
 
     std::string model_;
     std::string port_;
@@ -101,13 +101,13 @@
       static Handle<Value> SetConfigValue(const Arguments &args);
       static Handle<Value> TakePicture(const Arguments &args);
       static Handle<Value> DownloadPicture(const Arguments& args);
-      ASYNC_FN(EIO_GetConfig);
-      ASYNC_CB(EIO_GetConfigCb);
-      ASYNC_FN(EIO_SetConfigValue);
-      ASYNC_CB(EIO_SetConfigValueCb);
-      ASYNC_FN(EIO_DownloadPicture);
-      ASYNC_FN(EIO_Capture);
-      ASYNC_CB(EIO_CaptureCb);
+      ASYNC_FN(Async_GetConfig);
+      ASYNC_CB(Async_GetConfigCb);
+      ASYNC_FN(Async_SetConfigValue);
+      ASYNC_CB(Async_SetConfigValueCb);
+      ASYNC_FN(Async_DownloadPicture);
+      ASYNC_FN(Async_Capture);
+      ASYNC_CB(Async_CaptureCb);
       std::string getPort(){return this->port_;};
       std::string getModel(){return this->model_;};
       void setCamera(Camera *camera){this->camera_=camera;};

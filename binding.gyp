@@ -9,10 +9,12 @@
         'src/camera_helpers.cc',
         'src/gphoto.cc'
       ],
-      'libraries': [
-        '-lgphoto2',
-        '-lgphoto2_port'
-      ],
+      'link_settings': {
+        'libraries': [
+          '-lgphoto2',
+          '-lgphoto2_port'
+        ]
+      },
       'cflags!': ['-fno-exceptions'],
       'target_arch': 'x64',
       'conditions': [

@@ -1,23 +1,19 @@
 process.title = 'node-gphoto2 test program'
+global[id] ?= require name for id, name of {
+  "fs"
+  "GPhoto":"../build/Release/gphoto2"
+  "express"
+  _: "underscore"
+}
 
-
-GPhoto = require "../build/Release/gphoto2"
-fs     = require "fs"
 gphoto = new GPhoto.GPhoto2()
-express = require 'express'
-_      = require 'underscore'
-
-
-_gc = ()->gc() if typeof gc is 'function'
-
 requests = {}
-preview_listeners = new Array()
+preview_listeners = []
 
 camera = undefined
 
 # Fetch a list of cameras and get the first one
 gphoto.list (cameras)->
-  _gc()
   console.log "found #{cameras.length} cameras"
   # select first Canon camera
   camera = _(cameras).chain().filter((camera)->camera.model.match /Canon/).first().value()
@@ -33,11 +29,10 @@ gphoto.list (cameras)->
 
 app = express()
 
-console.log __dirname
 app.use express.static __dirname + '/public'
 app.use express.bodyParser()
 
-app.engine '.html', require('jade')
+app.engine '.html', require('jade').__express
 app.get '/', (req, res)->
   res.render 'index.html'
 
@@ -104,7 +99,7 @@ app.get '/preview*', (req, res)->
   else
     preview_listeners.push res
     if preview_listeners.length is 1
-      camera.getPreview (er, data)->
+      camera.takePicture preview:true, (er, data)->
         logRequests()
         tmp = preview_listeners
         preview_listeners = new Array()
@@ -118,4 +113,4 @@ app.get '/preview*', (req, res)->
             listener.writeHead 500
           listener.end()
 
-app.listen 1337, "0.0.0.0"
+app.listen process.env.PORT || 1337, "0.0.0.0"
