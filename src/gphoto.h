@@ -12,7 +12,15 @@ class GPhoto2: public node::ObjectWrap {
 
   GPPortInfoList   *portinfolist_;
   CameraAbilitiesList  *abilities_;
-  Persistent<Function> logCallBack;
+
+  struct log_request {
+    int                      level;
+    std::string              domain;
+    std::string              message;
+    Persistent<Function>    cb;
+  };
+  static void Async_LogCallback(uv_async_t*, int);
+
   struct list_request {
       Persistent<Function> cb;
       GPhoto2             *gphoto;
@@ -20,8 +28,8 @@ class GPhoto2: public node::ObjectWrap {
       Persistent<Object>	This;
       GPContext           *context;
   };
-  static void EIO_List(uv_work_t *req);
-  static void EIO_ListCb(uv_work_t *req);
+  static void Async_List(uv_work_t *req);
+  static void Async_ListCb(uv_work_t *req, int status);
   public:
     static Persistent<FunctionTemplate> constructor_template;
     Camera * _camera;
@@ -41,9 +49,7 @@ class GPhoto2: public node::ObjectWrap {
     void setAbilitiesList(CameraAbilitiesList *p){this->abilities_=p;};
     int openCamera(GPCamera *camera);
     int closeCamera(GPCamera *camera);
-    static void LogHandler(GPLogLevel level, const char *domain, const char *format, va_list args, void *data);
+    static void LogHandler(GPLogLevel level, const char *domain, const char *str, void *data);
 
 };
-static void onError(GPContext *context, const char *str, void *unused);
-static void onStatus(GPContext *context, const char *str, void *unused);
 #endif
