@@ -43,15 +43,17 @@ describe "node-gphoto2", ()->
       settings.main.should.have.property 'children'
       done()
 
-  it 'should allow saving camera settings', (done)->
+  it 'should allow saving camera settings', (done)-> 
+    @timeout 10000
     async.series [
       (cb)->cameras[0].setConfigValue "capturetarget", 0, cb
-      (cb)->cameras[0].setConfigValue "eosviewfinder", 0, cb
-      (cb)->cameras[0].setConfigValue "uilock", 1, cb
+      # (cb)->cameras[0].setConfigValue "eosviewfinder", 0, cb
+      # (cb)->cameras[0].setConfigValue "uilock", 1, cb
     ], done
 
   describe 'should be able to take a picture', ()->
      it 'without downloading', (done)->
+       @timeout 10000
        cameras[0].takePicture download:false, (er, file)->
          should.not.exist er
          file.should.be.a 'string'
@@ -59,6 +61,7 @@ describe "node-gphoto2", ()->
          done()
      it 'and download it to a buffer', (done)->
        # @timeout 5000
+       @timeout 10000
        cameras[0].takePicture download:true, (er, data)->
          should.not.exist er
          data.should.be.an.instanceOf Buffer
@@ -66,6 +69,7 @@ describe "node-gphoto2", ()->
          done()
 
      it 'and download it to the file system', (done)->
+       @timeout 10000
        cameras[0].takePicture download:true, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
          should.not.exist er
          file.should.be.a 'string'
@@ -95,7 +99,7 @@ describe "node-gphoto2", ()->
     before (done)->
       fs.unlink '/tmp/preview.sock', ()->done()
     it 'and send it over a socket', (done)->
-      @timeout 25000
+      @timeout 60000
       server = net.createServer (c)->
         c.on 'end', ()->
           server.close()
