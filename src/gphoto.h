@@ -1,6 +1,8 @@
 #ifndef __GPHOTO_H
 #define __GPHOTO_H
 #include "binding.h"
+#include <unistd.h>
+
 using namespace v8;
 
 class GPCamera;
