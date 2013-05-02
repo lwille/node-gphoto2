@@ -91,3 +91,15 @@ GPhoto.list(function(list){
   });
 });
 ```
+
+## Versioning
+
+This project uses [Semantic versioning](https://github.com/mojombo/semver).
+
+
+## Contributors
+
+* [Leonhardt Wille](https://github.com/lwille)
+* [david noelte](https://github.com/marvin)
+* [Michael Kötter](https://github.com/michaelkoetter)
+
