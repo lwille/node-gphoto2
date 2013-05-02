@@ -8,6 +8,11 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 namespace cv = cvv8;
+
+namespace cvv8 {
+    template<> struct NativeToJS<float> : NativeToJS<double> {};
+}
+
 Handle<Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *widget) {
   HandleScope scope;
 	const char *label;
