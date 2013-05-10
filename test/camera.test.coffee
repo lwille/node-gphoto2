@@ -47,7 +47,7 @@ describe "node-gphoto2", ()->
         done error
 
   it 'should allow saving camera settings', (done)-> 
-    @timeout 10000
+    @timeout 5000
     async.series [
       (cb)->cameras[0].setConfigValue "capturetarget", 0, cb
       # (cb)->cameras[0].setConfigValue "eosviewfinder", 0, cb
@@ -93,6 +93,7 @@ describe "node-gphoto2", ()->
            done error
 
      it 'and download it later', (done)->
+       @timeout 5000
        cameras[0].downloadPicture cameraPath:cameras[0].firstPicture, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
          try
            should.not.exist er
@@ -107,6 +108,7 @@ describe "node-gphoto2", ()->
            done error
 
   it "should return a proper error code when something goes wrong", (done)->
+    @timeout 5000
     cameras[0].takePicture download:true, targetPath: '/path/does/not/exist/foo.XXXXXXX', (er, file)->
       try
         er.should.be.a 'number'
@@ -118,7 +120,7 @@ describe "node-gphoto2", ()->
     before (done)->
       fs.unlink '/tmp/preview.sock', ()->done()
     it 'and send it over a socket', (done)->
-      @timeout 60000
+      @timeout 10000
       server = net.createServer (c)->
         c.on 'end', ()->
           server.close()
