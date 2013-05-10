@@ -35,13 +35,16 @@ describe "node-gphoto2", ()->
     cameras.length.should.be.above 0
 
   it 'should provide a list of settings', (done)->
-    @timeout 4000
+    @timeout 5000
     cameras[0].getConfig (er, settings)->
-      should.not.exist er
-      settings.should.have.property 'main'
-      settings.main.should.be.an.instanceOf Object
-      settings.main.should.have.property 'children'
-      done()
+      try
+        should.not.exist er
+        settings.should.have.property 'main'
+        settings.main.should.be.an.instanceOf Object
+        settings.main.should.have.property 'children'
+        done()
+      catch error
+        done error
 
   it 'should allow saving camera settings', (done)-> 
     @timeout 10000
@@ -53,48 +56,64 @@ describe "node-gphoto2", ()->
 
   describe 'should be able to take a picture', ()->
      it 'without downloading', (done)->
-       @timeout 10000
+       @timeout 5000
        cameras[0].takePicture download:false, (er, file)->
-         should.not.exist er
-         file.should.be.a 'string'
-         cameras[0].firstPicture = file
-         done()
+         try
+           should.not.exist er
+           file.should.be.a 'string'
+           cameras[0].firstPicture = file
+           done()
+         catch error
+           done error
+
      it 'and download it to a buffer', (done)->
-       # @timeout 5000
-       @timeout 10000
+       @timeout 5000
        cameras[0].takePicture download:true, (er, data)->
-         should.not.exist er
-         data.should.be.an.instanceOf Buffer
-         checkJpegHeader data
-         done()
+         try
+           should.not.exist er
+           data.should.be.an.instanceOf Buffer
+           checkJpegHeader data
+           done()
+         catch error
+           done error
 
      it 'and download it to the file system', (done)->
-       @timeout 10000
+       @timeout 5000
        cameras[0].takePicture download:true, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
-         should.not.exist er
-         file.should.be.a 'string'
-         fs.exists file, (exists)->
-           if exists
-             tempfiles.push file
-             done()
-           else
-             done "#{file} does not exist."
+         try
+           should.not.exist er
+           file.should.be.a 'string'
+           fs.exists file, (exists)->
+             if exists
+               tempfiles.push file
+               done()
+             else
+               done "#{file} does not exist."
+         catch error
+           done error
 
      it 'and download it later', (done)->
        cameras[0].downloadPicture cameraPath:cameras[0].firstPicture, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
-         should.not.exist er
-         file.should.be.a 'string'
-         fs.exists file, (exists)->
-           if exists
-             tempfiles.push file
-             done()
-           else
-             done "#{file} does not exist."
+         try
+           should.not.exist er
+           file.should.be.a 'string'
+           fs.exists file, (exists)->
+             if exists
+               tempfiles.push file
+               done()
+             else
+               done "#{file} does not exist."
+         catch error
+           done error
 
   it "should return a proper error code when something goes wrong", (done)->
     cameras[0].takePicture download:true, targetPath: '/path/does/not/exist/foo.XXXXXXX', (er, file)->
-      er.should.be.a 'number'
-      done()
+      try
+        er.should.be.a 'number'
+        done()
+      catch error
+        done error
+
   describe 'should be able to take a preview picture', ()->
     before (done)->
       fs.unlink '/tmp/preview.sock', ()->done()
@@ -109,8 +128,11 @@ describe "node-gphoto2", ()->
         log arguments
       server.on 'listening', ()->
         cameras[0].takePicture preview:true, socket:'/tmp/preview.sock', (er)->
-          should.not.exist er
-          done er
+          try
+            should.not.exist er
+            done()
+          catch error
+            done error
 
     # clean up our mess :)
     after ()->
