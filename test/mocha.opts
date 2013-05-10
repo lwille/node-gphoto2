@@ -1,2 +1,2 @@
---reporter tap
+--reporter list
 --compilers coffee:coffee-script
