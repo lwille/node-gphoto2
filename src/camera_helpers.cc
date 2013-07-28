@@ -214,9 +214,7 @@ int GPCamera::enumConfig(get_config_request* req, CameraWidget *root, A<TreeNode
   gp_widget_get_label (root,(const char**)&label);
   ret = gp_widget_get_name (root, (const char**)&name);
 
-	TreeNode node;
-  node.value = root;
-  node.context  = req->context;
+	TreeNode node(root, req->context);
 	if (std::string((const char*)name).length())
 		uselabel = name;
 	else

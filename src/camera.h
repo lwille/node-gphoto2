@@ -19,7 +19,8 @@
     CameraWidget* value;
     GPContext *context;
     A<TreeNode>::Tree subtree;
-    TreeNode(){};
+    TreeNode(CameraWidget* value, GPContext *context) : value(value), context(context) {}
+    TreeNode() : value(NULL), context(NULL) {}
   };
 
   using namespace v8;

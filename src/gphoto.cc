@@ -76,7 +76,7 @@ Handle<Value> GPhoto2::List(const Arguments &args){
 
 
 void GPhoto2::Async_LogCallback(uv_async_t *handle, int status) {
-  log_request *message = (log_request*)handle->data;
+  log_request *message = static_cast<log_request*>(handle->data);
 
   HandleScope scope;
   Local<Value> args[] = {
@@ -116,7 +116,7 @@ Handle<Value> GPhoto2::SetLogHandler(const Arguments &args){
 }
 
 void GPhoto2::Async_List(uv_work_t *req){
-    list_request *list_req = (list_request *)req->data;
+    list_request *list_req = static_cast<list_request *>(req->data);
     GPhoto2 *gphoto = list_req->gphoto;
     GPPortInfoList *portInfoList = gphoto->getPortInfoList();
     CameraAbilitiesList *abilitiesList = gphoto->getAbilitiesList();
@@ -130,7 +130,7 @@ void  GPhoto2::Async_ListCb(uv_work_t *req, int status){
     HandleScope scope;
     int i;
 
-    list_request *list_req = (list_request *)req->data;
+    list_request *list_req = static_cast<list_request *>(req->data);
 
     Local<Value> argv[1];
 

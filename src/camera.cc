@@ -91,7 +91,7 @@ GPCamera::TakePicture(const Arguments& args) {
 
 void
 GPCamera::Async_Capture(uv_work_t *_req){
-  take_picture_request *req = (take_picture_request *)_req->data;
+  take_picture_request *req = static_cast<take_picture_request *>(_req->data);
   req->cameraObject->lock();
   if(req->preview){
     capturePreview(req);
@@ -103,7 +103,7 @@ GPCamera::Async_Capture(uv_work_t *_req){
 
 void GPCamera::Async_CaptureCb(uv_work_t *req, int status){
   HandleScope scope;
-  take_picture_request *capture_req = (take_picture_request*) req->data;
+  take_picture_request *capture_req = static_cast<take_picture_request*>(req->data);
 
   Handle<Value> argv[2];
   int argc = 1;
@@ -172,7 +172,7 @@ GPCamera::DownloadPicture(const Arguments& args){
 }
 
 void GPCamera::Async_DownloadPicture(uv_work_t *_req){
-  take_picture_request *req = (take_picture_request *)_req->data;
+  take_picture_request *req = static_cast<take_picture_request *>(_req->data);
 
   req->cameraObject->lock();
   downloadPicture(req);
@@ -229,7 +229,7 @@ namespace cvv8 {
 
 
 void GPCamera::Async_GetConfig(uv_work_t *req){
-  get_config_request *config_req = (get_config_request*)req->data;
+  get_config_request *config_req = static_cast<get_config_request*>(req->data);
   int ret;
 
   config_req->cameraObject->lock();
@@ -245,7 +245,7 @@ void GPCamera::Async_GetConfig(uv_work_t *req){
 }
 void GPCamera::Async_GetConfigCb(uv_work_t *req, int status){
   HandleScope scope;
-  get_config_request *config_req = (get_config_request*)req->data;
+  get_config_request *config_req = static_cast<get_config_request*>(req->data);
 
   Handle<Value> argv[2];
 
@@ -312,7 +312,7 @@ GPCamera::SetConfigValue(const Arguments& args) {
 }
 void
 GPCamera::Async_SetConfigValue(uv_work_t *req){
-  set_config_request *config_req = (set_config_request *)req->data;
+  set_config_request *config_req = static_cast<set_config_request *>(req->data);
 
   config_req->cameraObject->lock();
   config_req->ret = setWidgetValue(config_req);
@@ -321,7 +321,7 @@ GPCamera::Async_SetConfigValue(uv_work_t *req){
 void
 GPCamera::Async_SetConfigValueCb(uv_work_t *req, int status){
   HandleScope scope;
-  set_config_request *config_req = (set_config_request *)req->data;
+  set_config_request *config_req = static_cast<set_config_request *>(req->data);
 
   int argc = 0;
   Local<Value> argv[1];
