@@ -25,7 +25,7 @@
     "async": "~0.2.6"
   },
   "scripts": {
-    "preinstall": "(pkg-config libgphoto2 || dpkg -s libgphoto2-2-dev || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1)) && node-gyp rebuild",
+    "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && dpkg -s libgphoto2-2-dev) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1)) && node-gyp rebuild",
     "test": "node_modules/mocha/bin/mocha"
   }
 }
