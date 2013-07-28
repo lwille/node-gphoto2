@@ -163,7 +163,7 @@ int GPCamera::getConfigWidget(get_config_request *req, std::string name, CameraW
   GPContext *context = req->context;
   Camera    *camera  = req->camera;
 
-  ret = gp_camera_get_config(camera, rootconfig, context);
+  gp_camera_get_config(camera, rootconfig, context);
   ret = gp_widget_get_child_by_name(*rootconfig, name.c_str(), child);
 
   // name not found --> path specified
