@@ -48,12 +48,13 @@ GPCamera::TakePicture(const Arguments& args) {
   HandleScope scope;
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
-  take_picture_request *picture_req = new take_picture_request();
-  picture_req->preview = false;
+  take_picture_request *picture_req;
 
   if(args.Length() >= 2){
     REQ_OBJ_ARG(0, options);
     REQ_FUN_ARG(1, cb);
+    picture_req = new take_picture_request();
+    picture_req->preview = false;
     picture_req->cb = Persistent<Function>::New(cb);
     Local<Value> dl = options->Get(String::New("download"));
     Local<Value> target = options->Get(String::New("targetPath"));
@@ -75,6 +76,8 @@ GPCamera::TakePicture(const Arguments& args) {
     }
   }else{
     REQ_FUN_ARG(0, cb);
+    picture_req = new take_picture_request();
+    picture_req->preview = false;
     picture_req->cb = Persistent<Function>::New(cb);
   }
 
@@ -277,21 +280,23 @@ GPCamera::SetConfigValue(const Arguments& args) {
   REQ_STR_ARG(0, key);
   REQ_FUN_ARG(2, cb);
 
-  set_config_request *config_req = new set_config_request();
+  set_config_request *config_req;
   if(args[1]->IsString()){
     REQ_STR_ARG(1, value);
+    config_req = new set_config_request();
     config_req->strValue = *value;
     config_req->valueType = set_config_request::String;
   }else if(args[1]->IsInt32()){
     REQ_INT_ARG(1, value);
+    config_req = new set_config_request();
     config_req->intValue = value;
     config_req->valueType = set_config_request::Integer;
   }else if(args[1]->IsNumber()){
     double dblValue = args[1]->ToNumber()->Value();
+    config_req = new set_config_request();
     config_req->fltValue = dblValue;
     config_req->valueType = set_config_request::Float;
   }else{
-    delete config_req;
     return ThrowException(Exception::TypeError(String::New("Argument 1 invalid: String, Integer or Float value expected")));
   }
   config_req->cameraObject = camera;
