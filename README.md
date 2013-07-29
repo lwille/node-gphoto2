@@ -42,6 +42,7 @@ This example only shows how to achieve certain tasks, it's not meant to be execu
 ```javascript
 gphoto2 = require('gphoto2');
 GPhoto = new gphoto2.GPhoto2();
+fs = require('fs');
 
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function(list){
