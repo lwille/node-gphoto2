@@ -100,7 +100,8 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 
 ## Contributors
 
+* [David Noelte](https://github.com/marvin)
 * [Leonhardt Wille](https://github.com/lwille)
-* [david noelte](https://github.com/marvin)
+* [Luigi Pinca](https://github.com/lpinca)
 * [Michael Kötter](https://github.com/michaelkoetter)
 
