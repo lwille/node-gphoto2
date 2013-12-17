@@ -117,15 +117,18 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status){
   }
   else if(capture_req->data && capture_req->download) {
     argc = 2;
-    node::Buffer* slowBuffer = node::Buffer::New(capture_req->length);
+    Local<Object> globalObj = Context::GetCurrent()->Global();
+    Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(String::New("Buffer")));
+    Handle<Value> constructorArgs[1];
+    constructorArgs[0] = capture_req->length
+      ? Integer::New(capture_req->length)
+      : Integer::New(0);
+    Local<Object> buffer = bufferConstructor->NewInstance(1, constructorArgs);
     if(capture_req->length){
-      memmove(Buffer::Data(slowBuffer), capture_req->data, capture_req->length);
-      Local<Object> globalObj = Context::GetCurrent()->Global();
-      Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(String::New("Buffer")));
-      Handle<Value> constructorArgs[3] = { slowBuffer->handle_, Integer::New(capture_req->length), Integer::New(0) };
-      Local<Object> actualBuffer = bufferConstructor->NewInstance(3, constructorArgs);
-      argv[1] = actualBuffer;
+      memmove(Buffer::Data(buffer), capture_req->data, capture_req->length);
+      delete capture_req->data;
     }
+    argv[1] = buffer;
   }else{
     argc = 2;
     argv[1] = cv::CastToJS(capture_req->path);

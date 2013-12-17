@@ -274,6 +274,7 @@ GPCamera::getCameraFile(take_picture_request *req, CameraFile **file){
 void
 GPCamera::downloadPicture(take_picture_request *req){
 	CameraFile *file;
+  const char *data;
   int retval;
   std::ostringstream folder;
   std::string name;
@@ -293,7 +294,7 @@ GPCamera::downloadPicture(take_picture_request *req){
   retval = getCameraFile(req, &file);
 
   if (retval == GP_OK) {
-	  retval = gp_camera_file_get ( req->camera, folder.str().c_str(), name.c_str(), GP_FILE_TYPE_NORMAL, file, req->context);
+	  retval = gp_camera_file_get(req->camera, folder.str().c_str(), name.c_str(), GP_FILE_TYPE_NORMAL, file, req->context);
   } else {
     req->ret=retval;
     return;
@@ -301,7 +302,13 @@ GPCamera::downloadPicture(take_picture_request *req){
 
 	// Fallback to downloading into buffer
 	if(retval == GP_OK && req->target_path.empty()){
-	  retval = gp_file_get_data_and_size (file, &req->data, &req->length);
+	  retval = gp_file_get_data_and_size(file, &data, &req->length);
+    if (retval == GP_OK && req->length != 0) {
+      // `gp_file_free` will call `free` on `file->data` pointer. We need to save our data
+      req->data = new char[req->length];
+      memmove(const_cast<char *>(req->data), data, req->length);
+    }
+    data = NULL;
 	}
 
   if(retval == GP_OK){
