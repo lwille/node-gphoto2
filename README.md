@@ -100,6 +100,7 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 
 ## Contributors
 
+* [Brian White](https://github.com/mscdex)
 * [David Noelte](https://github.com/marvin)
 * [Leonhardt Wille](https://github.com/lwille)
 * [Luigi Pinca](https://github.com/lpinca)
