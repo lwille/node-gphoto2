@@ -14,7 +14,7 @@ take pictures.
 ## Prerequisites
 * Node.js ~0.10.0
 * NPM ~1.2.15
-* libgphoto2 ~2.5.0 - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* libgphoto2 ~2.5.x - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * pkg-config | dpkg (used for dependency checking)
 * clang compiler
 
@@ -40,55 +40,57 @@ Also, the script tries to detect wether libgphoto2 is correctly installed - if t
 This example only shows how to achieve certain tasks, it's not meant to be executed without any asynchronous control flow logic.
 
 ```javascript
-gphoto2 = require('gphoto2');
-GPhoto = new gphoto2.GPhoto2();
-fs = require('fs');
+var gphoto2 = require('gphoto2');
+var GPhoto = new gphoto2.GPhoto2();
+var fs = require('fs');
 
 // List cameras / assign list item to variable to use below options
-GPhoto.list(function(list){
-  if(list.length === 0) return;
+GPhoto.list(function (list) {
+  if (list.length === 0) return;
   var camera = list[0];
-  console.log("Found", camera.model);
+  console.log('Found', camera.model);
 
   // get configuration tree
-  camera.getConfig(function(er, settings){
+  camera.getConfig(function (er, settings) {
     console.log(settings);
   });
 
   // Set configuration values
-  camera.setConfigValue('capturetarget', 1, function(er){
+  camera.setConfigValue('capturetarget', 1, function (er) {
     //...
-  })
+  });
 
   // Take picture with camera object obtained from list()
-  camera.takePicture({download:true}, function(er, data){
-    fs.writeFile("picture.jpg", data);
+  camera.takePicture({download: true}, function (er, data) {
+    fs.writeFileSync(__dirname + '/picture.jpg', data);
   });
 
   // Take picture without downloading immediately
-  camera.takePicture({download:false}, function(er, path){
+  camera.takePicture({download: false}, function (er, path) {
     console.log(path);
   });
 
   // Take picture and download it to filesystem
   camera.takePicture({
-      download:true,
-      targetPath:'/tmp/foo.XXXXX'
-    }, function(er, tmpname){
-      fs.rename(tmpname, './picture.jpg');
+    targetPath: '/tmp/foo.XXXXXX'
+  }, function (er, tmpname) {
+    fs.renameSync(tmpname, __dirname + '/picture.jpg');
   });
 
   // Download a picture from camera
   camera.downloadPicture({
-      cameraPath:'/store_00020001/DCIM/100CANON/IMG_1231.JPG',
-      targetPath:'/tmp/foo.XXXXX'
-    }, function(er, tmpname){
-      fs.rename(tmpname, './picture.jpg');
+    cameraPath: '/store_00020001/DCIM/100CANON/IMG_1231.JPG',
+    targetPath: '/tmp/foo.XXXXXX'
+  }, function (er, tmpname) {
+    fs.renameSync(tmpname, __dirname + '/picture.jpg');
   });
 
   // Get preview picture (from AF Sensor, fails silently if unsupported)
-  camera.takePicture({preview:true}, function(er, data){
-    fs.writeFile("picture.jpg", data);
+  camera.takePicture({
+    preview: true,
+    targetPath: '/tmp/foo.XXXXXX'
+  }, function (er, tmpname) {
+    fs.renameSync(tmpname, __dirname + '/picture.jpg');
   });
 });
 ```
