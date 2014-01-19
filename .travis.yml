@@ -1,3 +1,7 @@
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq pkg-config libgphoto2-2-dev
 language: node_js
 node_js:
-  - 0.6
+  - 0.10
+
