@@ -1,6 +1,9 @@
 # node-gphoto2
-A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote controlling of DSLRs and other digital cameras supported by [gphoto2](http://www.gphoto.org).
 
+[![Build Status](https://travis-ci.org/lwille/node-gphoto2.png?branch=master)](https://travis-ci.org/lwille/node-gphoto2)
+[![NPM version](https://badge.fury.io/js/gphoto2.png)](http://badge.fury.io/js/gphoto2)
+
+A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote controlling of DSLRs and other digital cameras supported by [gphoto2](http://www.gphoto.org).
 
 The included test application currently allows you to
 
@@ -8,35 +11,46 @@ The included test application currently allows you to
 * query a list of available configuration options
 * query the values of specific configuration options
 
-The test suite can be run using ``npm test``. There's also a small test application in test/test-server.coffee which runs on http://localhost:1337 and allows to change camera settings and to
+The test suite can be run using `npm test`. There's also a small test application in `test/test-server.coffee` which runs on `http://localhost:1337` and allows to change camera settings and to
 take pictures.
 
 ## Prerequisites
+
 * Node.js ~0.10.0
 * NPM ~1.2.15
-* libgphoto2 ~2.5.x - via ``brew install libgphoto2``, ``apt-get install libgphoto2-2-dev`` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* libgphoto2 ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * pkg-config | dpkg (used for dependency checking)
 * clang compiler
 
 ## Test/dev prerequisites
+
 * async
 * coffee-script
 * mocha
+* pre-commit
 * should
 * sinon
+* superagent
 
 ## Test-server prerequisites
+
 * express
 * jade
 * underscore
 
 ## Installation
+
 After installing the dependencies, just install using:
-    npm install gphoto2
+
+```
+npm install gphoto2
+```
+
 If it fails, please thoroughly check the output - link errors usually indicate missing dependencies.
 Also, the script tries to detect wether libgphoto2 is correctly installed - if this check fails although you properly installed it, please report :)
 
 ## Usage
+
 This example only shows how to achieve certain tasks, it's not meant to be executed without any asynchronous control flow logic.
 
 ```javascript
@@ -99,7 +113,6 @@ GPhoto.list(function (list) {
 
 This project uses [Semantic versioning](https://github.com/mojombo/semver).
 
-
 ## Contributors
 
 * [Brian White](https://github.com/mscdex)
@@ -107,4 +120,3 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 * [Leonhardt Wille](https://github.com/lwille)
 * [Luigi Pinca](https://github.com/lpinca)
 * [Michael Kötter](https://github.com/michaelkoetter)
-
