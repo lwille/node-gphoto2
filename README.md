@@ -108,3 +108,7 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 * [Luigi Pinca](https://github.com/lpinca)
 * [Michael Kötter](https://github.com/michaelkoetter)
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lwille/node-gphoto2/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
