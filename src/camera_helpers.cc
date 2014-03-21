@@ -1,4 +1,4 @@
-/* Copyright 2012 Leonhardt Wille */
+/* Copyright contributors of the node-gphoto2 project */
 
 #include <errno.h>
 #include <sys/socket.h>

@@ -1,4 +1,4 @@
-/* Copyright 2012 Leonhardt Wille */
+/* Copyright contributors of the node-gphoto2 project */
 
 #ifndef SRC_GPHOTO_H_
 #define SRC_GPHOTO_H_
