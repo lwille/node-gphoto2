@@ -16,7 +16,7 @@ camera = undefined
 gphoto.list (cameras)->
   console.log "found #{cameras.length} cameras"
   # select first Canon camera
-  camera = _(cameras).chain().filter((camera)->camera.model.match /Canon/).first().value()
+  camera = _(cameras).chain().filter((camera)->camera.model.match /(Canon|Nikon)/).first().value()
   # exit if no Canon camera is connected
   process.exit(-1) unless camera
   # retrieve available configuration settings
@@ -71,7 +71,7 @@ app.get '/download/*', (req, res)->
   else
     if (match = req.url.match /download(.*)$/) and (path = match[1])
       console.log "trying to DL #{path}"
-      camera.downloadPicture path, (er, data)->
+      camera.downloadPicture {cameraPath: path}, (er, data)->
         if er
           res.send 404, er
         else
