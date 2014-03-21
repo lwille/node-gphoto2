@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/lwille/node-gphoto2.png?branch=master)](https://travis-ci.org/lwille/node-gphoto2)
 [![NPM version](https://badge.fury.io/js/gphoto2.png)](http://badge.fury.io/js/gphoto2)
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lwille/node-gphoto2/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
 A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote controlling of DSLRs and other digital cameras supported by [gphoto2](http://www.gphoto.org).
 
@@ -120,6 +121,3 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 * [Leonhardt Wille](https://github.com/lwille)
 * [Luigi Pinca](https://github.com/lpinca)
 * [Michael Kötter](https://github.com/michaelkoetter)
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/lwille/node-gphoto2/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-

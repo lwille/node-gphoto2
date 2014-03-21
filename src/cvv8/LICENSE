@@ -1,0 +1,11 @@
+This is the LICENSE file for the v8-juice project.
+
+The source code used in this project has varying licenses, most
+prominently:
+
+- New BSD
+- Public Domain
+
+Some of it may have similar licenses, like Artistic, Apache, MIT,
+or zlib-style. None of it uses a viral license (one which infects
+code it is linked with).
