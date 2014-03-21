@@ -14,17 +14,22 @@
   "main": "build/Release/gphoto2.node",
   "dependencies": {},
   "devDependencies": {
+    "async": "~0.2.6",
     "coffee-script": "~1.3.3",
     "express": "~3.1.1",
-    "underscore": "~1.4.4",
     "jade": "~0.28.2",
-    "superagent": "~0.14.0",
     "mocha": "~1.9.0",
+    "pre-commit": "~0.0.4",
     "should": "~1.2.2",
     "sinon": "~1.6.0",
-    "async": "~0.2.6"
+    "superagent": "~0.14.0",
+    "underscore": "~1.4.4"
   },
+  "pre-commit": [
+    "cpplint"
+  ],
   "scripts": {
+    "cpplint": "util/cpplint.sh",
     "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && dpkg -s libgphoto2-2-dev) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1)) && node-gyp rebuild",
     "test": "node_modules/mocha/bin/mocha"
   }

@@ -1,7 +1,11 @@
 before_install:
- - sudo apt-get update -qq
- - sudo apt-get install -qq pkg-config libgphoto2-2-dev
+  - sudo add-apt-repository --yes ppa:dirk-computer42/c42-builddeps
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libgphoto2-6-dev
+install:
+  - npm run preinstall
+script:
+  - util/cpplint.sh
 language: node_js
 node_js:
   - 0.10
-
