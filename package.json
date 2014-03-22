@@ -2,8 +2,8 @@
   "author": "Leonhardt Wille <wille@riverlabs.de>",
   "name": "gphoto2",
   "description": "Node.js wrapper for libgphoto2",
-  "version": "0.1.5",
-  "homepage": "https://www.riverlabs.de",
+  "version": "0.1.6",
+  "homepage": "https://github.com/lwille/node-gphoto2",
   "repository": {
     "type": "git",
     "url": "git://github.com/lwille/node-gphoto2.git"
