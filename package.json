@@ -35,11 +35,35 @@
   },
   "license": "MIT",
   "contributors": [
-    "Leonhardt Wille <wille@riverlabs.de> (https://github.com/lwille)",
-    "Aaron Israel <ai@gobas.de> (https://github.com/a0n)",
-    "Luigi Pinca <luigipinca@gmail.com> (https://github.com/lpinca)",
-    "Michael Kötter <michael@m-koetter.de> (https://github.com/michaelkoetter)",
-    "david noelte <noelte@csb-doebeln.de> (https://github.com/marvin)",
-    "Brian White <mscdex@mscdex.net> (https://github.com/mscdex)"
+    {
+      "name": "Leonhardt Wille",
+      "email": "wille@riverlabs.de",
+      "url": "https://github.com/lwille"
+    },
+    {
+      "name": "Aaron Israel",
+      "email": "ai@gobas.de",
+      "url": "https://github.com/a0n"
+    },
+    {
+      "name": "Luigi Pinca",
+      "email": "luigipinca@gmail.com",
+      "url": "https://github.com/lpinca"
+    },
+    {
+      "name": "Michael Kötter",
+      "email": "michael@m-koetter.de",
+      "url": "https://github.com/michaelkoetter"
+    },
+    {
+      "name": "david noelte",
+      "email": "noelte@csb-doebeln.de",
+      "url": "https://github.com/marvin"
+    },
+    {
+      "name": "Brian White",
+      "email": "mscdex@mscdex.net",
+      "url": "https://github.com/mscdex"
+    }
   ]
 }
