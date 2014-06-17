@@ -3,7 +3,7 @@
 #include <gphoto2/gphoto2-widget.h>
 #include <sstream>
 #include <string>
-#include "camera.h"  // NOLINT 
+#include "camera.h"  // NOLINT
 
 using std::string;
 using namespace node;  // NOLINT
@@ -232,7 +232,7 @@ namespace cvv8 {
       }
     }
   };
-}
+}  // namespace cvv8
 
 void GPCamera::Async_GetConfig(uv_work_t *req) {
   get_config_request *config_req = static_cast<get_config_request *>(req->data);
@@ -246,7 +246,7 @@ void GPCamera::Async_GetConfig(uv_work_t *req) {
   if (ret < GP_OK) {
     config_req->ret = ret;
   } else {
-    ret = enumConfig(config_req, config_req->root, config_req->settings);
+    ret = enumConfig(config_req, config_req->root, &config_req->settings);
     config_req->ret = ret;
   }
 }
@@ -366,7 +366,7 @@ Camera* GPCamera::getCamera() {
     this->gphoto_->openCamera(this);
   }
   return this->camera_;
-};
+}
 
 bool GPCamera::close() {
   // this->gphoto_->Unref();

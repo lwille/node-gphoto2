@@ -38,35 +38,35 @@ class GPhoto2: public node::ObjectWrap {
   static void Async_List(uv_work_t *req);
   static void Async_ListCb(uv_work_t *req, int status);
 
-  public:
-    static Persistent<FunctionTemplate> constructor_template;
-    Camera * _camera;
-    GPhoto2();
-    ~GPhoto2();
-    static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments &args);
-    static Handle<Value> List(const Arguments &args);
-    static Handle<Value> Test(const Arguments &args);
-    static Handle<Value> SetLogHandler(const Arguments &args);
-    GPContext *getContext() {
-      return this->context_;
-    }
-    GPPortInfoList *getPortInfoList() {
-      return this->portinfolist_;
-    }
-    void setPortInfoList(GPPortInfoList *p) {
-      this->portinfolist_ = p;
-    }
-    CameraAbilitiesList *getAbilitiesList() {
-      return this->abilities_;
-    }
-    void setAbilitiesList(CameraAbilitiesList *p) {
-      this->abilities_ = p;
-    }
-    int openCamera(GPCamera *camera);
-    int closeCamera(GPCamera *camera);
-    static void LogHandler(GPLogLevel level, const char *domain,
-                           const char *str, void *data);
+ public:
+  static Persistent<FunctionTemplate> constructor_template;
+  Camera * _camera;
+  GPhoto2();
+  ~GPhoto2();
+  static void Initialize(Handle<Object> target);
+  static Handle<Value> New(const Arguments &args);
+  static Handle<Value> List(const Arguments &args);
+  static Handle<Value> Test(const Arguments &args);
+  static Handle<Value> SetLogHandler(const Arguments &args);
+  GPContext *getContext() {
+    return this->context_;
+  }
+  GPPortInfoList *getPortInfoList() {
+    return this->portinfolist_;
+  }
+  void setPortInfoList(GPPortInfoList *p) {
+    this->portinfolist_ = p;
+  }
+  CameraAbilitiesList *getAbilitiesList() {
+    return this->abilities_;
+  }
+  void setAbilitiesList(CameraAbilitiesList *p) {
+    this->abilities_ = p;
+  }
+  int openCamera(GPCamera *camera);
+  int closeCamera(GPCamera *camera);
+  static void LogHandler(GPLogLevel level, const char *domain,
+                         const char *str, void *data);
 };
 
 #endif  // SRC_GPHOTO_H_

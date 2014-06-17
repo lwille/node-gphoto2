@@ -221,7 +221,7 @@ int GPCamera::getConfigWidget(get_config_request *req, std::string name,
 }
 
 int GPCamera::enumConfig(get_config_request *req, CameraWidget *root,
-                         A<TreeNode>::Tree &tree) {
+                         A<TreeNode>::Tree *tree) {
   int ret, n, i;
   char *label, *name, *uselabel;
 
@@ -240,9 +240,9 @@ int GPCamera::enumConfig(get_config_request *req, CameraWidget *root,
     CameraWidget *child;
     ret = gp_widget_get_child(root, i, &child);
     if (ret != GP_OK) continue;
-    enumConfig(req, child, node.subtree);
+    enumConfig(req, child, &node.subtree);
   }
-  tree[uselabel] = node;
+  (*tree)[uselabel] = node;
   return GP_OK;
 }
 
