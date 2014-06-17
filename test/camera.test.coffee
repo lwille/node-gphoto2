@@ -17,7 +17,7 @@ tempfiles = []
 checkJpegHeader = (buf)->
   buf.readUInt16BE(0).toString(16).should.equal 'ffd8' # start of image
   buf.readUInt16BE(2).toString(16).should.equal 'ffe1' # exif header
-  
+
 describe "node-gphoto2", ()->
   before (next)->
     @timeout 5000
@@ -46,7 +46,7 @@ describe "node-gphoto2", ()->
       catch error
         done error
 
-  it 'should allow saving camera settings', (done)-> 
+  it 'should allow saving camera settings', (done)->
     @timeout 5000
     async.series [
       (cb)->cameras[0].setConfigValue "capturetarget", 0, cb
