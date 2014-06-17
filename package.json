@@ -20,7 +20,7 @@
     "express": "^3.1.2",
     "jade": "^0.28.2",
     "mocha": "^1.9.0",
-    "pre-commit": "0.0.4",
+    "pre-commit": "^0.0.8",
     "should": "^1.2.2",
     "sinon": "^1.6.0",
     "superagent": "^0.14.9",
