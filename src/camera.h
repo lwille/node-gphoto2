@@ -17,10 +17,10 @@ namespace cv = cvv8;
  */
 
 template <typename T> class A {
-  private:
-    A(void) {}
-  public:
-    typedef std::map<std::string, T> Tree;
+ private:
+  A(void) {}
+ public:
+  typedef std::map<std::string, T> Tree;
 };
 
 
@@ -102,7 +102,7 @@ class GPCamera : public node::ObjectWrap {
   };
 
   static int enumConfig(get_config_request* req, CameraWidget *root,
-                        A<TreeNode>::Tree &tree);
+                        A<TreeNode>::Tree *tree);
   static int getConfigWidget(get_config_request *req, std::string name,
                              CameraWidget **child, CameraWidget **rootconfig);
   static int setWidgetValue(set_config_request *req);
@@ -113,36 +113,36 @@ class GPCamera : public node::ObjectWrap {
 
   bool close();
 
-  public:
-    GPCamera(Handle<External> js_gphoto, std::string  model, std::string  port);
-    ~GPCamera();
-    static Handle<Value> getWidgetValue(GPContext *context,
-                                        CameraWidget *widget);
-    static Persistent<FunctionTemplate> constructor_template;
-    static void Initialize(Handle<Object> target);
-    static Handle<Value> New(const Arguments& args);
-    static Handle<Value> GetConfig(const Arguments& args);
-    static Handle<Value> GetConfigValue(const Arguments &args);
-    static Handle<Value> SetConfigValue(const Arguments &args);
-    static Handle<Value> TakePicture(const Arguments &args);
-    static Handle<Value> DownloadPicture(const Arguments& args);
-    ASYNC_FN(Async_GetConfig);
-    ASYNC_CB(Async_GetConfigCb);
-    ASYNC_FN(Async_SetConfigValue);
-    ASYNC_CB(Async_SetConfigValueCb);
-    ASYNC_FN(Async_DownloadPicture);
-    ASYNC_FN(Async_Capture);
-    ASYNC_CB(Async_CaptureCb);
-    std::string getPort() {
-      return this->port_;
-    }
-    std::string getModel() {
-      return this->model_;
-    }
-    void setCamera(Camera *camera) {
-      this->camera_ = camera;
-    }
-    Camera* getCamera();
+ public:
+  GPCamera(Handle<External> js_gphoto, std::string  model, std::string  port);
+  ~GPCamera();
+  static Handle<Value> getWidgetValue(GPContext *context,
+                                      CameraWidget *widget);
+  static Persistent<FunctionTemplate> constructor_template;
+  static void Initialize(Handle<Object> target);
+  static Handle<Value> New(const Arguments& args);
+  static Handle<Value> GetConfig(const Arguments& args);
+  static Handle<Value> GetConfigValue(const Arguments &args);
+  static Handle<Value> SetConfigValue(const Arguments &args);
+  static Handle<Value> TakePicture(const Arguments &args);
+  static Handle<Value> DownloadPicture(const Arguments& args);
+  ASYNC_FN(Async_GetConfig);
+  ASYNC_CB(Async_GetConfigCb);
+  ASYNC_FN(Async_SetConfigValue);
+  ASYNC_CB(Async_SetConfigValueCb);
+  ASYNC_FN(Async_DownloadPicture);
+  ASYNC_FN(Async_Capture);
+  ASYNC_CB(Async_CaptureCb);
+  std::string getPort() {
+    return this->port_;
+  }
+  std::string getModel() {
+    return this->model_;
+  }
+  void setCamera(Camera *camera) {
+    this->camera_ = camera;
+  }
+  Camera* getCamera();
 };
 
 #endif  // SRC_CAMERA_H_
