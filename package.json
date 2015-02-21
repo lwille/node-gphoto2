@@ -11,9 +11,14 @@
   "engines": {
     "node": "~0.10.0"
   },
-  "os" : [ "darwin", "linux" ],
+  "os": [
+    "darwin",
+    "linux"
+  ],
   "main": "build/Release/gphoto2.node",
-  "dependencies": {},
+  "dependencies": {
+    "nan": "^1.6.2"
+  },
   "devDependencies": {
     "async": "^0.2.10",
     "coffee-script": "^1.7.1",

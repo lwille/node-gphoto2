@@ -2,6 +2,9 @@
   'targets': [
     {
       'target_name': 'gphoto2',
+      'include_dirs': [
+        "<!(node -e \"require('nan')\")"
+      ],
       'sources': [
         'src/autodetect.cc',
         'src/binding.cc',
