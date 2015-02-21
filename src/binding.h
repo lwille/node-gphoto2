@@ -7,6 +7,8 @@ extern "C" {
   #include <gphoto2/gphoto2-camera.h>
   #include <gphoto2/gphoto2-port-log.h>
 }
+
+#include <v8.h>
 #include <node.h>
 #include <node_buffer.h>
 #include <nan.h>
@@ -36,31 +38,31 @@ extern "C" {
   if (args.Length() <= (I) || !args[I]->IsExternal()) {     \
     NanThrowTypeError("Argument " #I " invalid");         \
   }                                                         \
-  Local<External> VAR = Local<External>::Cast(args[I]);
+  v8::Local<v8::External> VAR = v8::Local<v8::External>::Cast(args[I]);
 
 #define REQ_FUN_ARG(I, VAR)                                 \
   if (args.Length() <= (I) || !args[I]->IsFunction()) {     \
     NanThrowTypeError("Argument " #I " must be a function");\
   }                                                         \
-  Local<Function> VAR = Local<Function>::Cast(args[I]);
+  v8::Local<v8::Function> VAR = v8::Local<v8::Function>::Cast(args[I]);
 
 #define REQ_OBJ_ARG(I, VAR)                                 \
   if (args.Length() <= (I) || !args[I]->IsObject()) {       \
-    NanThrowTypeError("Argument " #I " must be an Object"); \
+    NanThrowTypeError("Argument " #I " must be an v8::Object"); \
   }                                                         \
-  Local<Object> VAR = Local<Array>::Cast(args[I]);
+  v8::Local<v8::Object> VAR = v8::Local<v8::Array>::Cast(args[I]);
 
 #define REQ_ARR_ARG(I, VAR)                                 \
   if (args.Length() <= (I) || !args[I]->IsArray()) {        \
     NanThrowTypeError("Argument " #I " must be an Array"); \
   }                                                         \
-  Local<Array> VAR = Local<Array>::Cast(args[I]);
+  v8::Local<v8::Array> VAR = v8::Local<v8::Array>::Cast(args[I]);
 
 #define REQ_STR_ARG(I, VAR)                                 \
   if (args.Length() <= (I) || !args[I]->IsString()) {       \
     NanThrowTypeError("Argument " #I " must be a string"); \
   }                                                         \
-  String::Utf8Value VAR(args[I]->ToString());
+  v8::String::Utf8Value VAR(args[I]->ToString());
 
 #define REQ_INT_ARG(I, VAR)                                 \
   if (args.Length() <= (I) || !args[I]->IsInt32()) {        \

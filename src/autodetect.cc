@@ -3,7 +3,7 @@
 #include <gphoto2/gphoto2-camera.h>
 #include <stdio.h>
 #include <string>
-#include "binding.h"  // NOLINT
+#include "./binding.h"
 
 /**
  * This detects all currently attached cameras and returns

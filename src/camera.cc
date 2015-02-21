@@ -4,15 +4,11 @@
 
 #include <sstream>
 #include <string>
-#include "camera.h"  // NOLINT
+#include "./camera.h"
 
-using std::string;
-using namespace node;  // NOLINT
-using namespace v8;  // NOLINT
+v8::Persistent<v8::Function> GPCamera::constructor;
 
-Persistent<Function> GPCamera::constructor;
-
-GPCamera::GPCamera(Handle<External> js_gphoto, string model, string port)
+GPCamera::GPCamera(v8::Handle<v8::External> js_gphoto, std::string model, std::string port)
     : ObjectWrap(),
       model_(model),
       port_(port),
@@ -34,10 +30,10 @@ GPCamera::~GPCamera() {
   uv_mutex_destroy(&this->cameraMutex);
 }
 
-void GPCamera::Initialize(Handle<Object> exports) {
+void GPCamera::Initialize(v8::Handle<v8::Object> exports) {
   NanScope();
 
-  Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
+  v8::Local<v8::FunctionTemplate> tpl = NanNew<v8::FunctionTemplate>(New);
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
   tpl->SetClassName(NanNew("Camera"));
 
@@ -111,28 +107,28 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
   take_picture_request *capture_req =
     static_cast<take_picture_request *>(req->data);
 
-  Handle<Value> argv[2];
+  v8::Handle<v8::Value> argv[2];
   int argc = 1;
   argv[0] = NanUndefined();
   if (capture_req->ret != GP_OK) {
-    argv[0] = NanNew<Integer>(capture_req->ret);
+    argv[0] = NanNew(capture_req->ret);
   } else if (capture_req->download && !capture_req->target_path.empty()) {
     argc = 2;
-    argv[1] = NanNew<String>(capture_req->target_path.c_str());
+    argv[1] = NanNew(capture_req->target_path.c_str());
   } else if (capture_req->data && capture_req->download) {
     argc = 2;
-    Local<Object> globalObj = Context::GetCurrent()->Global();
-    Local<Function> bufferConstructor = Local<Function>::Cast(globalObj->Get(NanNew("Buffer")));
-    Handle<Value> constructorArgs[1];
+    v8::Local<v8::Object> globalObj = v8::Context::GetCurrent()->Global();
+    v8::Local<v8::Function> bufferConstructor = v8::Local<v8::Function>::Cast(globalObj->Get(NanNew("Buffer")));
+    v8::Handle<v8::Value> constructorArgs[1];
     if (capture_req->length > 0) {
       constructorArgs[0] = NanNew((unsigned int)capture_req->length);
     } else {
       constructorArgs[0] = NanNew(0);
     }
 
-    Local<Object> buffer = bufferConstructor->NewInstance(1, constructorArgs);
+    v8::Local<v8::Object> buffer = bufferConstructor->NewInstance(1, constructorArgs);
     if (capture_req->length) {
-      memmove(Buffer::Data(buffer), capture_req->data, capture_req->length);
+      memmove(node::Buffer::Data(buffer), capture_req->data, capture_req->length);
       delete capture_req->data;
     }
     argv[1] = buffer;
@@ -141,7 +137,7 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
     argv[1] = NanNew(capture_req->path);
   }
 
-  capture_req->cb->Call(Context::GetCurrent()->Global(), argc, argv);
+  capture_req->cb->Call(v8::Context::GetCurrent()->Global(), argc, argv);
   NanDisposePersistent(capture_req->cb);
   if (capture_req->ret == GP_OK) gp_file_free(capture_req->file);
   capture_req->cameraObject->Unref();
@@ -167,8 +163,8 @@ NAN_METHOD(GPCamera::DownloadPicture) {
   picture_req->context = gp_context_new();
   picture_req->download = true;
 
-  Local<Value> source = options->Get(NanNew("cameraPath"));
-  Local<Value> target = options->Get(NanNew("targetPath"));
+  v8::Local<v8::Value> source = options->Get(NanNew("cameraPath"));
+  v8::Local<v8::Value> target = options->Get(NanNew("targetPath"));
   if (target->IsString()) {
     picture_req->target_path = std::string(*NanAsciiString(target));
   }
@@ -235,7 +231,7 @@ void GPCamera::Async_GetConfigCb(uv_work_t *req, int status) {
   NanScope();
   get_config_request *config_req = static_cast<get_config_request *>(req->data);
 
-  Handle<Value> argv[2];
+  v8::Handle<v8::Value> argv[2];
 
   if (config_req->ret == GP_OK) {
     argv[0] = NanUndefined();
@@ -247,7 +243,7 @@ void GPCamera::Async_GetConfigCb(uv_work_t *req, int status) {
     argv[1] = NanUndefined();
   }
 
-  config_req->cb->Call(Context::GetCurrent()->Global(), 2, argv);
+  config_req->cb->Call(v8::Context::GetCurrent()->Global(), 2, argv);
 
   gp_widget_free(config_req->root);
   NanDisposePersistent(config_req->cb);
@@ -284,9 +280,7 @@ NAN_METHOD(GPCamera::SetConfigValue) {
     config_req->fltValue = dblValue;
     config_req->valueType = set_config_request::Float;
   } else {
-    return ThrowException(Exception::TypeError(
-      NanNew<String>("Argument 1 invalid: String, Integer or Float value "
-                  "expected")));
+    return NanThrowTypeError("Argument 1 invalid: String, Integer or Float value expected");
   }
   config_req->cameraObject = camera;
   config_req->camera = camera->getCamera();
@@ -313,12 +307,12 @@ void GPCamera::Async_SetConfigValueCb(uv_work_t *req, int status) {
   set_config_request *config_req = static_cast<set_config_request *>(req->data);
 
   int argc = 0;
-  Local<Value> argv[1];
+  v8::Local<v8::Value> argv[1];
   if (config_req->ret < GP_OK) {
-    argv[0] = NanNew<Integer>(config_req->ret);
+    argv[0] = NanNew(config_req->ret);
     argc = 1;
   }
-  config_req->cb->Call(Context::GetCurrent()->Global(), argc, argv);
+  config_req->cb->Call(v8::Context::GetCurrent()->Global(), argc, argv);
   NanDisposePersistent(config_req->cb);
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);
@@ -333,10 +327,10 @@ NAN_METHOD(GPCamera::New) {
   REQ_STR_ARG(1, model_);
   REQ_STR_ARG(2, port_);
 
-  GPCamera *camera = new GPCamera(js_gphoto, (string) *model_,
-                                  (string) *port_);
+  GPCamera *camera = new GPCamera(js_gphoto, (std::string) *model_,
+                                  (std::string) *port_);
   camera->Wrap(args.This());
-  Local<Object> This = args.This();
+  v8::Local<v8::Object> This = args.This();
   This->Set(NanNew("model"), NanNew(camera->model_.c_str()));
   This->Set(NanNew("port"), NanNew(camera->port_.c_str()));
   return args.This();

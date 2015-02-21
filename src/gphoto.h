@@ -5,13 +5,11 @@
 
 #include <unistd.h>
 #include <string>
-#include "binding.h" // NOLINT
-
-using namespace v8;  // NOLINT
+#include "./binding.h"
 
 class GPCamera;
-static Persistent<String> gphoto_list_symbol;
-static Persistent<String> gphoto_onLog_symbol;
+static v8::Persistent<v8::String> gphoto_list_symbol;
+static v8::Persistent<v8::String> gphoto_onLog_symbol;
 
 class GPhoto2 : public node::ObjectWrap {
   GPContext * context_;
@@ -23,14 +21,14 @@ class GPhoto2 : public node::ObjectWrap {
     int level;
     std::string domain;
     std::string message;
-    Persistent<Function> cb;
+    v8::Persistent<v8::Function> cb;
   };
 
   struct list_request {
-    Persistent<Function> cb;
+    v8::Persistent<v8::Function> cb;
     GPhoto2 *gphoto;
     CameraList *list;
-    Persistent<Object> This;
+    v8::Persistent<v8::Object> This;
     GPContext *context;
   };
 
@@ -39,11 +37,11 @@ class GPhoto2 : public node::ObjectWrap {
   static void Async_ListCb(uv_work_t *req, int status);
 
  public:
-  static Persistent<FunctionTemplate> constructor_template;
+  static v8::Persistent<v8::FunctionTemplate> constructor_template;
   Camera * _camera;
   GPhoto2();
   ~GPhoto2();
-  static void Initialize(Handle<Object> target);
+  static void Initialize(v8::Handle<v8::Object> target);
   static NAN_METHOD(New);
   static NAN_METHOD(List);
   static NAN_METHOD(SetLogHandler);

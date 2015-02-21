@@ -6,8 +6,8 @@
 #include <list>
 #include <map>
 #include <string>
-#include "binding.h"  // NOLINT
-#include "gphoto.h"  // NOLINT
+#include "./binding.h"
+#include "./gphoto.h"
 
 /**
  * Class for templated typedef's
@@ -31,14 +31,13 @@ struct TreeNode {
   TreeNode() : value(NULL), context(NULL) {}
 };
 
-using namespace v8;  // NOLINT
 typedef std::list<std::string> StringList;
 
-static Persistent<String> camera_getConfig_symbol;
-static Persistent<String> camera_getConfigValue_symbol;
-static Persistent<String> camera_setConfigValue_symbol;
-static Persistent<String> camera_takePicture_symbol;
-static Persistent<String> camera_downloadPicture_symbol;
+static v8::Persistent<v8::String> camera_getConfig_symbol;
+static v8::Persistent<v8::String> camera_getConfigValue_symbol;
+static v8::Persistent<v8::String> camera_setConfigValue_symbol;
+static v8::Persistent<v8::String> camera_takePicture_symbol;
+static v8::Persistent<v8::String> camera_downloadPicture_symbol;
 
 class GPCamera : public node::ObjectWrap {
   uv_mutex_t cameraMutex;
@@ -51,7 +50,7 @@ class GPCamera : public node::ObjectWrap {
 
   std::string model_;
   std::string port_;
-  Persistent<External> gphoto;
+  v8::Persistent<v8::External> gphoto;
   GPhoto2 *gphoto_;
   Camera *camera_;
   CameraWidget *config_;
@@ -60,7 +59,7 @@ class GPCamera : public node::ObjectWrap {
   }
 
   struct take_picture_request {
-    Persistent<Function> cb;
+    v8::Persistent<v8::Function> cb;
     Camera *camera;
     GPCamera *cameraObject;
     CameraFile *file;
@@ -76,7 +75,7 @@ class GPCamera : public node::ObjectWrap {
   };
 
   struct get_config_request {
-    Persistent<Function> cb;
+    v8::Persistent<v8::Function> cb;
     GPCamera  *cameraObject;
     Camera    *camera;
     GPContext *context;
@@ -87,7 +86,7 @@ class GPCamera : public node::ObjectWrap {
   };
 
   struct set_config_request {
-    Persistent<Function> cb;
+    v8::Persistent<v8::Function> cb;
     GPCamera  *cameraObject;
     Camera    *camera;
     GPContext *context;
@@ -112,12 +111,12 @@ class GPCamera : public node::ObjectWrap {
   bool close();
 
  public:
-  GPCamera(Handle<External> js_gphoto, std::string  model, std::string  port);
+  GPCamera(v8::Handle<v8::External> js_gphoto, std::string  model, std::string  port);
   ~GPCamera();
-  static Handle<Value> getWidgetValue(GPContext *context,
+  static v8::Handle<v8::Value> getWidgetValue(GPContext *context,
                                       CameraWidget *widget);
-  static Persistent<Function> constructor;
-  static void Initialize(Handle<Object> target);
+  static v8::Persistent<v8::Function> constructor;
+  static void Initialize(v8::Handle<v8::Object> target);
   static NAN_METHOD(New);
   static NAN_METHOD(GetConfig);
   static NAN_METHOD(GetConfigValue);

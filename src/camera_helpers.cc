@@ -9,15 +9,15 @@
 #include <ctime>
 #include <sstream>
 #include <string>
-#include "camera.h"  // NOLINT
+#include "./camera.h"
 
-Handle<Value> GPCamera::getWidgetValue(GPContext *context,
+v8::Handle<v8::Value> GPCamera::getWidgetValue(GPContext *context,
                                        CameraWidget *widget) {
   NanScope();
   const char *label;
   CameraWidgetType  type;
   int ret;
-  Local<Object> value = NanNew<Object>();
+  v8::Local<v8::Object> value = NanNew<v8::Object>();
 
   ret = gp_widget_get_type(widget, &type);
   if (ret != GP_OK) return NanUndefined();
@@ -82,7 +82,7 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context,
         break;
       }
       value->Set(NanNew("type"), NanNew("date"));
-      value->Set(NanNew("value"), NanNew<Date>(t * 1000.0));
+      value->Set(NanNew("value"), NanNew<v8::Date>(t * 1000.0));
       break;
     }
     case GP_WIDGET_MENU:
@@ -98,7 +98,7 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context,
       }
       ret = GP_ERROR_BAD_PARAMETERS;
 
-      Local<Array> choices = NanNew<Array>(cnt);
+      v8::Local<v8::Array> choices = NanNew<v8::Array>(cnt);
       for (i = 0; i < cnt; i++) {
         const char *choice = NULL;
 

@@ -1,10 +1,13 @@
 /* Copyright contributors of the node-gphoto2 project */
 
-#include "camera.h"  // NOLINT
-#include "gphoto.h"  // NOLINT
+
+#include "./binding.h"
+
+#include "./camera.h"
+#include "./gphoto.h"
 
 extern "C" {
-  void init(Handle<Object> target) {
+  void init(v8::Handle<v8::Object> target) {
     NanScope();
     GPhoto2::Initialize(target);
     GPCamera::Initialize(target);
