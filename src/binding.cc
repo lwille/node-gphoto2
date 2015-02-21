@@ -5,7 +5,7 @@
 
 extern "C" {
   void init(Handle<Object> target) {
-    HandleScope scope;
+    NanScope();
     GPhoto2::Initialize(target);
     GPCamera::Initialize(target);
   }

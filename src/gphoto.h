@@ -10,10 +10,10 @@
 using namespace v8;  // NOLINT
 
 class GPCamera;
-static Persistent<String> gphoto_test_symbol;
 static Persistent<String> gphoto_list_symbol;
 static Persistent<String> gphoto_onLog_symbol;
-class GPhoto2: public node::ObjectWrap {
+
+class GPhoto2 : public node::ObjectWrap {
   GPContext * context_;
 
   GPPortInfoList   *portinfolist_;
@@ -44,10 +44,9 @@ class GPhoto2: public node::ObjectWrap {
   GPhoto2();
   ~GPhoto2();
   static void Initialize(Handle<Object> target);
-  static Handle<Value> New(const Arguments &args);
-  static Handle<Value> List(const Arguments &args);
-  static Handle<Value> Test(const Arguments &args);
-  static Handle<Value> SetLogHandler(const Arguments &args);
+  static NAN_METHOD(New);
+  static NAN_METHOD(List);
+  static NAN_METHOD(SetLogHandler);
   GPContext *getContext() {
     return this->context_;
   }

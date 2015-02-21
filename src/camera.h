@@ -9,8 +9,6 @@
 #include "binding.h"  // NOLINT
 #include "gphoto.h"  // NOLINT
 
-namespace cv = cvv8;
-
 /**
  * Class for templated typedef's
  * Initialize as A<Typename>::Tree etc.
@@ -68,7 +66,7 @@ class GPCamera : public node::ObjectWrap {
     CameraFile *file;
     GPContext *context;
     const char *data;
-    unsigned long int length;  // NOLINT
+    unsigned long length; // NOLINT: Use int16/int64/etc, rather than the C type long
     int ret;
     bool download;
     bool preview;
@@ -118,21 +116,21 @@ class GPCamera : public node::ObjectWrap {
   ~GPCamera();
   static Handle<Value> getWidgetValue(GPContext *context,
                                       CameraWidget *widget);
-  static Persistent<FunctionTemplate> constructor_template;
+  static Persistent<Function> constructor;
   static void Initialize(Handle<Object> target);
-  static Handle<Value> New(const Arguments& args);
-  static Handle<Value> GetConfig(const Arguments& args);
-  static Handle<Value> GetConfigValue(const Arguments &args);
-  static Handle<Value> SetConfigValue(const Arguments &args);
-  static Handle<Value> TakePicture(const Arguments &args);
-  static Handle<Value> DownloadPicture(const Arguments& args);
-  ASYNC_FN(Async_GetConfig);
-  ASYNC_CB(Async_GetConfigCb);
-  ASYNC_FN(Async_SetConfigValue);
-  ASYNC_CB(Async_SetConfigValueCb);
-  ASYNC_FN(Async_DownloadPicture);
-  ASYNC_FN(Async_Capture);
-  ASYNC_CB(Async_CaptureCb);
+  static NAN_METHOD(New);
+  static NAN_METHOD(GetConfig);
+  static NAN_METHOD(GetConfigValue);
+  static NAN_METHOD(SetConfigValue);
+  static NAN_METHOD(TakePicture);
+  static NAN_METHOD(DownloadPicture);
+  ASYNC_FN(Async_GetConfig);         // TODO(lwille): Rewrite using NanAsyncWorker
+  ASYNC_CB(Async_GetConfigCb);       // TODO(lwille): Rewrite using NanAsyncWorker
+  ASYNC_FN(Async_SetConfigValue);    // TODO(lwille): Rewrite using NanAsyncWorker
+  ASYNC_CB(Async_SetConfigValueCb);  // TODO(lwille): Rewrite using NanAsyncWorker
+  ASYNC_FN(Async_DownloadPicture);   // TODO(lwille): Rewrite using NanAsyncWorker
+  ASYNC_FN(Async_Capture);           // TODO(lwille): Rewrite using NanAsyncWorker
+  ASYNC_CB(Async_CaptureCb);         // TODO(lwille): Rewrite using NanAsyncWorker
   std::string getPort() {
     return this->port_;
   }

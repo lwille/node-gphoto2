@@ -11,26 +11,20 @@
 #include <string>
 #include "camera.h"  // NOLINT
 
-namespace cv = cvv8;
-
-namespace cvv8 {
-  template<> struct NativeToJS<float> : NativeToJS<double> {};
-}
-
 Handle<Value> GPCamera::getWidgetValue(GPContext *context,
                                        CameraWidget *widget) {
-  HandleScope scope;
+  NanScope();
   const char *label;
   CameraWidgetType  type;
   int ret;
-  Local<Object> value = Object::New();
+  Local<Object> value = NanNew<Object>();
 
   ret = gp_widget_get_type(widget, &type);
-  if (ret != GP_OK) return Undefined();
+  if (ret != GP_OK) return NanUndefined();
   ret = gp_widget_get_label(widget, &label);
-  if (ret != GP_OK) return Undefined();
-  value->Set(cv::CastToJS("label"), cv::CastToJS(label));
-  value->Set(cv::CastToJS("type"), Undefined());
+  if (ret != GP_OK) return NanUndefined();
+  value->Set(NanNew("label"), NanNew(label));
+  value->Set(NanNew("type"), NanUndefined());
   // printf("Label: %s\n", label);
   // "Label:" is not i18ned, the "label" variable is
   switch (type) {
@@ -38,8 +32,8 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context,
       char *txt;
       ret = gp_widget_get_value(widget, &txt);
       if (ret == GP_OK) {
-        value->Set(cv::CastToJS("type"), cv::CastToJS("string"));
-        value->Set(cv::CastToJS("value"), cv::CastToJS(txt));
+        value->Set(NanNew("type"), NanNew("string"));
+        value->Set(NanNew("value"), NanNew(txt));
       } else {
         gp_context_error(context,
                          "Failed to retrieve value of text widget %s.",
@@ -53,11 +47,11 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context,
       ret = gp_widget_get_range(widget, &min, &max, &step);
       if (ret == GP_OK) {
         ret = gp_widget_get_value(widget, &f);
-        value->Set(cv::CastToJS("type"), cv::CastToJS("range"));
-        value->Set(cv::CastToJS("value"), cv::CastToJS(f));
-        value->Set(cv::CastToJS("max"), cv::CastToJS(max));
-        value->Set(cv::CastToJS("min"), cv::CastToJS(min));
-        value->Set(cv::CastToJS("step"), cv::CastToJS(step));
+        value->Set(NanNew("type"), NanNew("range"));
+        value->Set(NanNew("value"), NanNew(f));
+        value->Set(NanNew("max"), NanNew(max));
+        value->Set(NanNew("min"), NanNew(min));
+        value->Set(NanNew("step"), NanNew(step));
       } else {
         gp_context_error(context,
                          "Failed to retrieve values of range widget %s.",
@@ -69,8 +63,8 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context,
       int t;
       ret = gp_widget_get_value(widget, &t);
       if (ret == GP_OK) {
-        value->Set(cv::CastToJS("type"), cv::CastToJS("toggle"));
-        value->Set(cv::CastToJS("value"), cv::CastToJS(t));
+        value->Set(NanNew("type"), NanNew("toggle"));
+        value->Set(NanNew("value"), NanNew(t));
       } else {
         gp_context_error(context,
                          "Failed to retrieve values of toggle widget %s.",
@@ -87,8 +81,8 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context,
                          label);
         break;
       }
-      value->Set(cv::CastToJS("type"), cv::CastToJS("date"));
-      value->Set(cv::CastToJS("value"), Date::New(t * 1000.0));
+      value->Set(NanNew("type"), NanNew("date"));
+      value->Set(NanNew("value"), NanNew<Date>(t * 1000.0));
       break;
     }
     case GP_WIDGET_MENU:
@@ -104,34 +98,34 @@ Handle<Value> GPCamera::getWidgetValue(GPContext *context,
       }
       ret = GP_ERROR_BAD_PARAMETERS;
 
-      Local<Array> choices = Array::New(cnt);
+      Local<Array> choices = NanNew<Array>(cnt);
       for (i = 0; i < cnt; i++) {
         const char *choice = NULL;
 
         ret = gp_widget_get_choice(widget, i, &choice);
         if (ret != GP_OK) continue;
-        choices->Set(cv::CastToJS(i), cv::CastToJS(choice));
+        choices->Set(NanNew(i), NanNew(choice));
       }
 
-      value->Set(cv::CastToJS("type"), cv::CastToJS("choice"));
-      value->Set(cv::CastToJS("value"), cv::CastToJS(current));
-      value->Set(cv::CastToJS("choices"), choices);
+      value->Set(NanNew("type"), NanNew("choice"));
+      value->Set(NanNew("value"), NanNew(current));
+      value->Set(NanNew("choices"), choices);
       break;
     }
     /* ignore: */
     case GP_WIDGET_WINDOW: {
-      value->Set(cv::CastToJS("type"), cv::CastToJS("window"));
+      value->Set(NanNew("type"), NanNew("window"));
       break;
     }
     case GP_WIDGET_SECTION: {
-      value->Set(cv::CastToJS("type"), cv::CastToJS("section"));
+      value->Set(NanNew("type"), NanNew("section"));
       break;
     }
     case GP_WIDGET_BUTTON: {
-      value->Set(cv::CastToJS("type"), cv::CastToJS("button"));
+      value->Set(NanNew("type"), NanNew("button"));
     }
   }
-  return scope.Close(value);
+  NanReturnValue(value);
 }
 
 int GPCamera::setWidgetValue(set_config_request *req) {
