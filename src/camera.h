@@ -59,7 +59,7 @@ class GPCamera : public node::ObjectWrap {
   }
 
   struct take_picture_request {
-    v8::Persistent<v8::Function> cb;
+    NanCallback *cb;
     Camera *camera;
     GPCamera *cameraObject;
     CameraFile *file;
@@ -75,7 +75,7 @@ class GPCamera : public node::ObjectWrap {
   };
 
   struct get_config_request {
-    v8::Persistent<v8::Function> cb;
+    NanCallback *cb;
     GPCamera  *cameraObject;
     Camera    *camera;
     GPContext *context;
@@ -86,7 +86,7 @@ class GPCamera : public node::ObjectWrap {
   };
 
   struct set_config_request {
-    v8::Persistent<v8::Function> cb;
+    NanCallback *cb;
     GPCamera  *cameraObject;
     Camera    *camera;
     GPContext *context;

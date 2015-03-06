@@ -125,7 +125,7 @@ v8::Handle<v8::Value> GPCamera::getWidgetValue(GPContext *context,
       value->Set(NanNew("type"), NanNew("button"));
     }
   }
-  NanReturnValue(value);
+  return value;
 }
 
 int GPCamera::setWidgetValue(set_config_request *req) {

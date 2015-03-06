@@ -5,7 +5,7 @@
 #include "././camera.h"
 #include "./gphoto.h"
 
-v8::Persistent<v8::FunctionTemplate> GPhoto2::constructor_template;
+v8::Persistent<v8::Function> GPhoto2::constructor;
 
 static void onError(GPContext *context, const char *str, void *data) {
   fprintf(stderr, "### %s\n", str);
@@ -25,29 +25,26 @@ GPhoto2::GPhoto2() : portinfolist_(NULL), abilities_(NULL) {
 GPhoto2::~GPhoto2() {
 }
 
-void GPhoto2::Initialize(v8::Handle<v8::Object> target) {
+void GPhoto2::Initialize(v8::Handle<v8::Object> exports) {
   NanScope();
-  v8::Local<v8::FunctionTemplate> t = NanNew<v8::FunctionTemplate>(New);
 
-  // Constructor
-  NanAssignPersistent(constructor_template, t);
+  v8::Local<v8::FunctionTemplate> tpl = NanNew<v8::FunctionTemplate>(New);
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
+  tpl->SetClassName(NanNew("GPhoto2"));
 
+  NODE_SET_PROTOTYPE_METHOD(tpl, "list", List);
+  NODE_SET_PROTOTYPE_METHOD(tpl, "setLogLevel", SetLogLevel);
 
-  constructor_template->InstanceTemplate()->SetInternalFieldCount(1);
-  constructor_template->SetClassName(NanNew("GPhoto2"));
+  NanAssignPersistent(constructor, tpl->GetFunction());
 
-  ADD_PROTOTYPE_METHOD(gphoto, list, List);
-  ADD_PROTOTYPE_METHOD(gphoto, onLog, SetLogHandler);
-
-  target->Set(NanNew("GPhoto2"),
-              constructor_template->GetFunction());
+  exports->Set(NanNew("GPhoto2"), tpl->GetFunction());
 }
 
 NAN_METHOD(GPhoto2::New) {
   NanScope();
   GPhoto2 *gphoto = new GPhoto2();
   gphoto->Wrap(args.This());
-  return args.This();
+  NanReturnThis();
 }
 
 NAN_METHOD(GPhoto2::List) {
@@ -58,7 +55,7 @@ NAN_METHOD(GPhoto2::List) {
 
   v8::TryCatch try_catch;
   list_request *list_req = new list_request();
-  NanAssignPersistent(list_req->cb, cb);
+  list_req->cb = new NanCallback(cb);
   list_req->list = NULL;
   list_req->gphoto = gphoto;
   NanAssignPersistent(list_req->This, args.This());
@@ -67,19 +64,20 @@ NAN_METHOD(GPhoto2::List) {
   DO_ASYNC(list_req, Async_List, Async_ListCb);
 
   gphoto->Ref();
-  return NanUndefined();
+  NanReturnUndefined();
 }
 
-void GPhoto2::Async_LogCallback(uv_async_t *handle, int status) {
-  log_request *message = static_cast<log_request *>(handle->data);
+NAUV_WORK_CB(GPhoto2::Async_LogCallback) {
+  log_request *message = static_cast<log_request *>(async->data);
 
   NanScope();
   v8::Local<v8::Value> args[] = {
+    NanNew("log"),
     NanNew(message->level),
     NanNew(message->domain.c_str()),
     NanNew(message->message.c_str())
   };
-  message->cb->Call(message->cb, 3, args);
+  message->cb->Call(4, args);
   delete message;
 }
 
@@ -91,23 +89,31 @@ void GPhoto2::LogHandler(GPLogLevel level, const char *domain, const char *str,
   message->level = level;
   message->domain = std::string(domain);
   message->message = std::string(str);
-  message->cb = static_cast<v8::Function *>(data);
+  message->cb = static_cast<NanCallback *>(data);
   uv_async_init(uv_default_loop(), &asyncLog, GPhoto2::Async_LogCallback);
   asyncLog.data = static_cast<void *>(message);
-
   uv_async_send(&asyncLog);
   sleep(0);  // allow the default thread to process the log entry
 }
 
-NAN_METHOD(GPhoto2::SetLogHandler) {
+NAN_METHOD(GPhoto2::SetLogLevel) {
   NanScope();
-  REQ_ARGS(2);
-  REQ_INT_ARG(0, level);
-  REQ_FUN_ARG(1, cb);
+  REQ_ARGS(1);
 
-  return NanNew(
-    gp_log_add_func((GPLogLevel) level, (GPLogFunc) GPhoto2::LogHandler,
-                    static_cast<void *>(*cb)));
+  GPhoto2 *gphoto = ObjectWrap::Unwrap<GPhoto2>(args.This());
+
+  if (args[0]->IsUndefined() || (gphoto->logLevel != args[0]->Int32Value() && gphoto->logFunc)) {
+    gp_log_remove_func(gphoto->logFunc);
+    gphoto->logFunc = 0;
+    if (args[0]->IsUndefined()) NanReturnUndefined();
+  }
+  gphoto->logLevel = (GPLogLevel) args[0]->Int32Value();
+
+  v8::Handle<v8::Function> fnEmit(v8::Handle<v8::Function>::Cast(args.This()->Get(NanNew("emit"))));
+  gp_log_add_func(gphoto->logLevel,
+                  (GPLogFunc) GPhoto2::LogHandler,
+                  static_cast<void *>(new NanCallback(fnEmit)));
+  NanReturnUndefined();
 }
 
 void GPhoto2::Async_List(uv_work_t *req) {
@@ -144,20 +150,19 @@ void  GPhoto2::Async_ListCb(uv_work_t *req, int status) {
       _argv[2] = NanNew<v8::String>(port_);
       v8::TryCatch try_catch;
       // call the _javascript_ constructor to create a new Camera object
-      v8::Persistent<v8::Object> js_camera(
-          GPCamera::constructor->NewInstance(3, _argv));
-      js_camera->Set(NanNew("_gphoto2_ref_obj_"), list_req->This);
+      v8::Local<v8::Object> js_camera(
+          NanNew(GPCamera::constructor)->NewInstance(3, _argv));
+      js_camera->Set(NanNew("_gphoto2_ref_obj_"), NanNew(list_req->This));
       result->Set(NanNew(i), js_camera);
       if (try_catch.HasCaught()) node::FatalException(try_catch);
     }
 
     v8::TryCatch try_catch;
 
-    list_req->cb->Call(v8::Context::GetCurrent()->Global(), 1, argv);
+    list_req->cb->Call(1, argv);
 
     if (try_catch.HasCaught()) node::FatalException(try_catch);
     NanDisposePersistent(list_req->This);
-    NanDisposePersistent(list_req->cb);
     list_req->gphoto->Unref();
     gp_context_unref(list_req->context);
     gp_list_free(list_req->list);

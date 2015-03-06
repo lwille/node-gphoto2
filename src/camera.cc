@@ -24,7 +24,6 @@ GPCamera::GPCamera(v8::Handle<v8::External> js_gphoto, std::string model, std::s
 GPCamera::~GPCamera() {
   printf("Camera destructor\n");
   this->gphoto_->closeCamera(this);
-  NanDisposePersistent(this->gphoto);
   this->close();
 
   uv_mutex_destroy(&this->cameraMutex);
@@ -58,7 +57,7 @@ NAN_METHOD(GPCamera::TakePicture) {
     REQ_FUN_ARG(1, cb);
     picture_req = new take_picture_request();
     picture_req->preview = false;
-    NanAssignPersistent(picture_req->cb, cb);
+    picture_req->cb = new NanCallback(cb);
 
     if (options->Get(NanNew("targetPath"))->IsString()) {
       picture_req->target_path = std::string(*NanAsciiString(options->Get(NanNew("targetPath"))));
@@ -80,7 +79,7 @@ NAN_METHOD(GPCamera::TakePicture) {
     REQ_FUN_ARG(0, cb);
     picture_req = new take_picture_request();
     picture_req->preview = false;
-    NanAssignPersistent(picture_req->cb, cb);
+    picture_req->cb = new NanCallback(cb);
   }
 
   picture_req->camera = camera->getCamera();
@@ -88,7 +87,7 @@ NAN_METHOD(GPCamera::TakePicture) {
 
   picture_req->context = gp_context_new();
   DO_ASYNC(picture_req, Async_Capture, Async_CaptureCb);
-  return NanUndefined();
+  NanReturnUndefined();
 }
 
 void GPCamera::Async_Capture(uv_work_t *_req) {
@@ -117,7 +116,7 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
     argv[1] = NanNew(capture_req->target_path.c_str());
   } else if (capture_req->data && capture_req->download) {
     argc = 2;
-    v8::Local<v8::Object> globalObj = v8::Context::GetCurrent()->Global();
+    v8::Local<v8::Object> globalObj = NanGetCurrentContext()->Global();
     v8::Local<v8::Function> bufferConstructor = v8::Local<v8::Function>::Cast(globalObj->Get(NanNew("Buffer")));
     v8::Handle<v8::Value> constructorArgs[1];
     if (capture_req->length > 0) {
@@ -137,8 +136,8 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
     argv[1] = NanNew(capture_req->path);
   }
 
-  capture_req->cb->Call(v8::Context::GetCurrent()->Global(), argc, argv);
-  NanDisposePersistent(capture_req->cb);
+  capture_req->cb->Call(argc, argv);
+
   if (capture_req->ret == GP_OK) gp_file_free(capture_req->file);
   capture_req->cameraObject->Unref();
   gp_context_unref(capture_req->context);
@@ -156,8 +155,7 @@ NAN_METHOD(GPCamera::DownloadPicture) {
   GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
   camera->Ref();
   take_picture_request *picture_req = new take_picture_request();
-
-  NanAssignPersistent(picture_req->cb, cb);
+  picture_req->cb = new NanCallback(cb);
   picture_req->camera = camera->getCamera();
   picture_req->cameraObject = camera;
   picture_req->context = gp_context_new();
@@ -172,7 +170,7 @@ NAN_METHOD(GPCamera::DownloadPicture) {
   picture_req->path     = std::string(*NanAsciiString(source));
   gp_camera_ref(picture_req->camera);
   DO_ASYNC(picture_req, Async_DownloadPicture, Async_CaptureCb);
-  return NanUndefined();
+  NanReturnUndefined();
 }
 
 void GPCamera::Async_DownloadPicture(uv_work_t *_req) {
@@ -200,14 +198,13 @@ NAN_METHOD(GPCamera::GetConfig) {
   config_req->camera = camera->getCamera();
   gp_camera_ref(config_req->camera);
   config_req->context = gp_context_new();
-  NanAssignPersistent(config_req->cb, cb);
-
+  config_req->cb = new NanCallback(cb);
   DO_ASYNC(config_req, Async_GetConfig, Async_GetConfigCb);
 
   // Async_custom(Async_GetConfig, Async_PRI_DEFAULT, Async_GetConfigCb,
   //                config_req);
   // ev_ref(EV_DEFAULT_UC);
-  return NanUndefined();
+  NanReturnUndefined();
 }
 
 void GPCamera::Async_GetConfig(uv_work_t *req) {
@@ -242,11 +239,9 @@ void GPCamera::Async_GetConfigCb(uv_work_t *req, int status) {
     argv[0] = NanNew(config_req->ret);
     argv[1] = NanUndefined();
   }
-
-  config_req->cb->Call(v8::Context::GetCurrent()->Global(), 2, argv);
+  config_req->cb->Call(2, argv);
 
   gp_widget_free(config_req->root);
-  NanDisposePersistent(config_req->cb);
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);
   gp_camera_unref(config_req->camera);
@@ -285,13 +280,13 @@ NAN_METHOD(GPCamera::SetConfigValue) {
   config_req->cameraObject = camera;
   config_req->camera = camera->getCamera();
   config_req->context = gp_context_new();
-  NanAssignPersistent(config_req->cb, cb);
+  config_req->cb = new NanCallback(cb);
   config_req->key = *key;
 
   gp_camera_ref(config_req->camera);
   DO_ASYNC(config_req, Async_SetConfigValue, Async_SetConfigValueCb);
 
-  return NanUndefined();
+  NanReturnUndefined();
 }
 
 void GPCamera::Async_SetConfigValue(uv_work_t *req) {
@@ -312,8 +307,9 @@ void GPCamera::Async_SetConfigValueCb(uv_work_t *req, int status) {
     argv[0] = NanNew(config_req->ret);
     argc = 1;
   }
-  config_req->cb->Call(v8::Context::GetCurrent()->Global(), argc, argv);
-  NanDisposePersistent(config_req->cb);
+
+  config_req->cb->Call(argc, argv);
+
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);
   gp_camera_unref(config_req->camera);
@@ -333,7 +329,7 @@ NAN_METHOD(GPCamera::New) {
   v8::Local<v8::Object> This = args.This();
   This->Set(NanNew("model"), NanNew(camera->model_.c_str()));
   This->Set(NanNew("port"), NanNew(camera->port_.c_str()));
-  return args.This();
+  NanReturnThis();
 }
 
 Camera* GPCamera::getCamera() {

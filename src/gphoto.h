@@ -17,34 +17,36 @@ class GPhoto2 : public node::ObjectWrap {
   GPPortInfoList   *portinfolist_;
   CameraAbilitiesList  *abilities_;
 
+  GPLogLevel logLevel;
+  int logFunc;
   struct log_request {
     int level;
     std::string domain;
     std::string message;
-    v8::Persistent<v8::Function> cb;
+    NanCallback *cb;
   };
 
   struct list_request {
-    v8::Persistent<v8::Function> cb;
+    NanCallback * cb;
     GPhoto2 *gphoto;
     CameraList *list;
     v8::Persistent<v8::Object> This;
     GPContext *context;
   };
 
-  static void Async_LogCallback(uv_async_t*, int);
+  static NAUV_WORK_CB(Async_LogCallback);
   static void Async_List(uv_work_t *req);
   static void Async_ListCb(uv_work_t *req, int status);
 
  public:
-  static v8::Persistent<v8::FunctionTemplate> constructor_template;
+  static v8::Persistent<v8::Function> constructor;
   Camera * _camera;
   GPhoto2();
   ~GPhoto2();
   static void Initialize(v8::Handle<v8::Object> target);
   static NAN_METHOD(New);
   static NAN_METHOD(List);
-  static NAN_METHOD(SetLogHandler);
+  static NAN_METHOD(SetLogLevel);
   GPContext *getContext() {
     return this->context_;
   }

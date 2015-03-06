@@ -15,7 +15,7 @@
     "darwin",
     "linux"
   ],
-  "main": "build/Release/gphoto2.node",
+  "main": "index.js",
   "dependencies": {
     "nan": "^1.6.2"
   },
