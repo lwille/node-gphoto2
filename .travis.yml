@@ -7,6 +7,9 @@ install:
   - npm run preinstall
 script:
   - util/cpplint.sh
+  - node-gyp rebuild
 language: node_js
 node_js:
   - 0.10
+  - 0.11
+  - 0.12
