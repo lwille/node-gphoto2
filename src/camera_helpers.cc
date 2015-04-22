@@ -257,9 +257,8 @@ int GPCamera::getCameraFile(take_picture_request *req, CameraFile **file) {
     struct sockaddr_un serv_addr;
     bzero(&serv_addr, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
-    // req->socket_path.c_str();
     snprintf(serv_addr.sun_path, sizeof(serv_addr.sun_path),
-              "/tmp/preview.sock");
+              "%s", req->socket_path.c_str());
 
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
       perror("Creating socket");
