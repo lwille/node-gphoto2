@@ -46,7 +46,16 @@ void GPCamera::Initialize(Handle<Object> target) {
   ADD_PROTOTYPE_METHOD(camera, setConfigValue, SetConfigValue);
   ADD_PROTOTYPE_METHOD(camera, takePicture, TakePicture);
   ADD_PROTOTYPE_METHOD(camera, downloadPicture, DownloadPicture);
+  ADD_PROTOTYPE_METHOD(camera, close, DoClose);
+
   target->Set(String::NewSymbol("Camera"), constructor_template->GetFunction());
+}
+
+Handle<Value> GPCamera::DoClose(const Arguments& args) {
+  HandleScope scope;
+  GPCamera *camera = ObjectWrap::Unwrap<GPCamera>(args.This());
+  camera->close();
+  return Undefined();
 }
 
 Handle<Value> GPCamera::TakePicture(const Arguments& args) {
