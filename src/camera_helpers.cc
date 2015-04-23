@@ -313,7 +313,9 @@ void GPCamera::downloadPicture(take_picture_request *req) {
   }
 
   /* Fallback to downloading into buffer */
-  if (retval == GP_OK && req->target_path.empty()) {
+  if (retval == GP_OK &&
+      req->target_path.empty() &&
+      req->socket_path.empty()) {
     retval = gp_file_get_data_and_size(file, &data, &req->length);
     if (retval == GP_OK && req->length != 0) {
       /* `gp_file_free` will call `free` on `file->data` pointer, save data */
