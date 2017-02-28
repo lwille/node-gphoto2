@@ -1,6 +1,6 @@
 # Capture 20 pictures and save them to disk.
 
-GPhoto = require "../build/Release/gphoto2"
+GPhoto = require "../"
 async  = require "async"
 fs     = require "fs"
 

@@ -9,14 +9,16 @@ extern "C" {
 }
 
 #include <v8.h>
-#include <node.h>
-#include <node_buffer.h>
 #include <nan.h>
 
 #include <string>
 #include <list>
 #include <map>
 #include <cstdlib>
+#include <cctype>
+#include <cwctype>
+#include <sstream>
+
 
 #define ASYNC_FN(NAME) static void NAME(uv_work_t* req);
 #define ASYNC_CB(NAME) static void NAME(uv_work_t* req, int status);
@@ -27,56 +29,63 @@ extern "C" {
   uv_queue_work(uv_default_loop(), req, ASYNC, AFTER);
 
 #define REQ_ARGS(N)                                         \
-  if (args.Length() < (N))                                  \
-    NanThrowTypeError("Expected " #N "arguments");
+  if (info.Length() < (N)) {                                \
+    info.GetIsolate()->ThrowException(                      \
+      Nan::TypeError("Expected " #N "arguments"));          \
+    return;                                                 \
+  }
 
 #define ADD_PROTOTYPE_METHOD(class, name, method)           \
   class ## _ ## name ## _symbol = NODE_PSYMBOL(#name);      \
   NODE_SET_PROTOTYPE_METHOD(constructor_template, #name, method);
 
 #define REQ_EXT_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsExternal()) {     \
-    NanThrowTypeError("Argument " #I " invalid");         \
+  if (info.Length() <= (I) || !info[I]->IsExternal()) {     \
+    info.GetIsolate()->ThrowException(                      \
+      Nan::TypeError("Argument " #I " invalid"));           \
+    return;                                                 \
   }                                                         \
-  v8::Local<v8::External> VAR = v8::Local<v8::External>::Cast(args[I]);
+  v8::Local<v8::External> VAR = v8::Local<v8::External>::Cast(info[I]);
 
-#define REQ_FUN_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsFunction()) {     \
-    NanThrowTypeError("Argument " #I " must be a function");\
-  }                                                         \
-  v8::Local<v8::Function> VAR = v8::Local<v8::Function>::Cast(args[I]);
+#define REQ_FUN_ARG(I, VAR)                                    \
+  if (info.Length() <= (I) || !info[I]->IsFunction()) {  printf("Not a function!!!");      \
+    info.GetIsolate()->ThrowException(                         \
+      Nan::TypeError("Argument " #I " must be a function"));   \
+    return;                                                    \
+  }                                                            \
+  v8::Local<v8::Function> VAR = v8::Local<v8::Function>::Cast(info[I]);
 
-#define REQ_OBJ_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsObject()) {       \
-    NanThrowTypeError("Argument " #I " must be an v8::Object"); \
-  }                                                         \
-  v8::Local<v8::Object> VAR = v8::Local<v8::Array>::Cast(args[I]);
+#define REQ_OBJ_ARG(I, VAR)                                  \
+  if (info.Length() <= (I) || !info[I]->IsObject()) {        \
+    info.GetIsolate()->ThrowException(                       \
+      Nan::TypeError("Argument " #I " must be a function")); \
+    return;                                                  \
+  }                                                          \
+  v8::Local<v8::Object> VAR = v8::Local<v8::Array>::Cast(info[I]);
 
 #define REQ_ARR_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsArray()) {        \
-    NanThrowTypeError("Argument " #I " must be an Array"); \
+  if (info.Length() <= (I) || !info[I]->IsArray()) {        \
+    info.GetIsolate()->ThrowException(                      \
+      Nan::TypeError("Argument " #I " must be an Array"));  \
+    return;                                                 \
   }                                                         \
-  v8::Local<v8::Array> VAR = v8::Local<v8::Array>::Cast(args[I]);
+  v8::Local<v8::Array> VAR = v8::Local<v8::Array>::Cast(info[I]);
 
 #define REQ_STR_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsString()) {       \
-    NanThrowTypeError("Argument " #I " must be a string"); \
+  if (info.Length() <= (I) || !info[I]->IsString()) {       \
+    info.GetIsolate()->ThrowException(                      \
+      Nan::TypeError("Argument " #I " must be a string"));  \
+    return;                                                 \
   }                                                         \
-  v8::String::Utf8Value VAR(args[I]->ToString());
+  v8::String::Utf8Value VAR(info[I]->ToString());
 
 #define REQ_INT_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsInt32()) {        \
-    NanThrowTypeError("Argument " #I " must be an integer");\
-  }                                                         \
-  int VAR = args[I]->Int32Value();
-
-#define RETURN_ON_ERROR(REQ, FNAME, ARGS, CLEANUP)          \
-  REQ->ret = FNAME ARGS;                                    \
-  if (REQ->ret < GP_OK) {                                   \
-    printf(#FNAME"=%d\n", REQ->ret);                        \
-    CLEANUP;                                                \
+  if (info.Length() <= (I) || !info[I]->IsInt32()) {        \
+    info.GetIsolate()->ThrowException(                      \
+      Nan::TypeError("Argument " #I " must be an integer"));\
     return;                                                 \
-  }
+  }                                                         \
+  int VAR = info[I]->Int32Value();
 
 // Useful functions taken from library examples, with slight modifications
 int open_camera(Camera **camera, std::string model, std::string port,
