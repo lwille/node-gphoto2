@@ -135,7 +135,7 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
     }
 
     v8::Local<v8::Object> buffer =
-            bufferConstructor->NewInstance(Nan::GetCurrentContext(), 1, constructorArgs).ToLocalChecked();
+            bufferConstructor->NewInstance(1, constructorArgs).ToLocalChecked();
     if (capture_req->length) {
       memmove(node::Buffer::Data(buffer), capture_req->data, capture_req->length);
       delete capture_req->data;
