@@ -127,7 +127,7 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
     v8::Local<v8::Object> globalObj = Nan::GetCurrentContext()->Global();
     v8::Local<v8::Function> bufferConstructor =
             v8::Local<v8::Function>::Cast(globalObj->Get(Nan::New("Buffer").ToLocalChecked()));
-    v8::Handle<v8::Value> constructorArgs[1];
+    v8::Local<v8::Value> constructorArgs[1];
     if (capture_req->length > 0) {
       constructorArgs[0] = Nan::New((unsigned int)capture_req->length);
     } else {

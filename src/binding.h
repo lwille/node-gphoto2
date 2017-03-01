@@ -30,9 +30,7 @@ extern "C" {
 
 #define REQ_ARGS(N)                                         \
   if (info.Length() < (N)) {                                \
-    info.GetIsolate()->ThrowException(                      \
-      Nan::TypeError("Expected " #N "arguments"));          \
-    return;                                                 \
+    return Nan::ThrowTypeError("Expected " #N "arguments"); \
   }
 
 #define ADD_PROTOTYPE_METHOD(class, name, method)           \
@@ -41,49 +39,37 @@ extern "C" {
 
 #define REQ_EXT_ARG(I, VAR)                                 \
   if (info.Length() <= (I) || !info[I]->IsExternal()) {     \
-    info.GetIsolate()->ThrowException(                      \
-      Nan::TypeError("Argument " #I " invalid"));           \
-    return;                                                 \
+    return Nan::ThrowTypeError("Argument " #I " invalid");  \
   }                                                         \
   v8::Local<v8::External> VAR = v8::Local<v8::External>::Cast(info[I]);
 
 #define REQ_FUN_ARG(I, VAR)                                    \
-  if (info.Length() <= (I) || !info[I]->IsFunction()) {  printf("Not a function!!!");      \
-    info.GetIsolate()->ThrowException(                         \
-      Nan::TypeError("Argument " #I " must be a function"));   \
-    return;                                                    \
+  if (info.Length() <= (I) || !info[I]->IsFunction()) {        \
+    return Nan::ThrowTypeError("Argument " #I " must be a function");   \
   }                                                            \
   v8::Local<v8::Function> VAR = v8::Local<v8::Function>::Cast(info[I]);
 
 #define REQ_OBJ_ARG(I, VAR)                                  \
   if (info.Length() <= (I) || !info[I]->IsObject()) {        \
-    info.GetIsolate()->ThrowException(                       \
-      Nan::TypeError("Argument " #I " must be a function")); \
-    return;                                                  \
+    return Nan::ThrowTypeError("Argument " #I " must be a function"); \
   }                                                          \
   v8::Local<v8::Object> VAR = v8::Local<v8::Array>::Cast(info[I]);
 
 #define REQ_ARR_ARG(I, VAR)                                 \
   if (info.Length() <= (I) || !info[I]->IsArray()) {        \
-    info.GetIsolate()->ThrowException(                      \
-      Nan::TypeError("Argument " #I " must be an Array"));  \
-    return;                                                 \
+    return Nan::ThrowTypeError("Argument " #I " must be an Array");  \
   }                                                         \
   v8::Local<v8::Array> VAR = v8::Local<v8::Array>::Cast(info[I]);
 
 #define REQ_STR_ARG(I, VAR)                                 \
   if (info.Length() <= (I) || !info[I]->IsString()) {       \
-    info.GetIsolate()->ThrowException(                      \
-      Nan::TypeError("Argument " #I " must be a string"));  \
-    return;                                                 \
+    return Nan::ThrowTypeError("Argument " #I " must be a string");  \
   }                                                         \
   v8::String::Utf8Value VAR(info[I]->ToString());
 
 #define REQ_INT_ARG(I, VAR)                                 \
   if (info.Length() <= (I) || !info[I]->IsInt32()) {        \
-    info.GetIsolate()->ThrowException(                      \
-      Nan::TypeError("Argument " #I " must be an integer"));\
-    return;                                                 \
+    return Nan::ThrowTypeError("Argument " #I " must be an integer");\
   }                                                         \
   int VAR = info[I]->Int32Value();
 
