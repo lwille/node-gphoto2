@@ -195,9 +195,8 @@ void GPhoto2::Async_ListCb(uv_work_t *req, int status) {
       _argv[1] = Nan::New(name_).ToLocalChecked();
       _argv[2] = Nan::New(port_).ToLocalChecked();
       // call the _javascript_ constructor to create a new Camera object
-      v8::Local<v8::Object> js_camera(Nan::New(GPCamera::constructor)->NewInstance(Nan::GetCurrentContext(),
-                                                                                   3,
-                                                                                   _argv).ToLocalChecked());
+      v8::Local<v8::Object> js_camera = Nan::NewInstance(Nan::New(GPCamera::constructor), 3, _argv).ToLocalChecked();
+
       js_camera->Set(Nan::New("_gphoto2_ref_obj_").ToLocalChecked(), Nan::New(list_req->This));
       result->Set(Nan::New(i), js_camera);
       if (try_catch.HasCaught())
