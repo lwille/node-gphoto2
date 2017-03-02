@@ -206,13 +206,11 @@ NAN_METHOD(GPCamera::GetConfig) {
 
   switch (info.Length()) {
   case 0:
-    info.GetIsolate()->ThrowException(Nan::TypeError(errMsg));
-    return;
+    return Nan::ThrowTypeError(errMsg);
 
   case 1:
     if (!info[0]->IsFunction()) {
-      info.GetIsolate()->ThrowException(Nan::TypeError(errMsg));
-      return;
+      return Nan::ThrowTypeError(errMsg);
     }
 
     cb = v8::Local<v8::Function>::Cast(info[0]);
@@ -308,9 +306,8 @@ NAN_METHOD(GPCamera::SetConfigValue) {
     config_req->fltValue = dblValue;
     config_req->valueType = set_config_request::Float;
   } else {
-      camera->Unref();
-      info.GetIsolate()->ThrowException(Nan::TypeError("Argument 1 invalid: String, Integer or Float value expected"));
-      return;
+    camera->Unref();
+    return Nan::ThrowTypeError("Argument 1 invalid: String, Integer or Float value expected");
   }
 
   config_req->cameraObject = camera;
