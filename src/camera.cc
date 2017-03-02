@@ -114,7 +114,7 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
   Nan::HandleScope scope;
   take_picture_request *capture_req = static_cast<take_picture_request *>(req->data);
 
-  v8::Handle<v8::Value> argv[2];
+  v8::Local<v8::Value> argv[2];
   int argc = 1;
   argv[0] = Nan::Undefined();
   if (capture_req->ret != GP_OK) {
@@ -219,7 +219,7 @@ NAN_METHOD(GPCamera::GetConfig) {
     break;
 
   default:
-    simplify = info[0]->BooleanValue();
+    simplify = Nan::To<v8::Boolean>(info[0]).ToLocalChecked()->Value();
     cb = v8::Local<v8::Function>::Cast(info[1]);
     break;
   }
@@ -303,7 +303,7 @@ NAN_METHOD(GPCamera::SetConfigValue) {
     config_req->intValue = value;
     config_req->valueType = set_config_request::Integer;
   } else if (info[1]->IsNumber()) {
-    double dblValue = info[1]->ToNumber(Nan::GetCurrentContext()).ToLocalChecked()->Value();
+    double dblValue = Nan::To<v8::Number>(info[1]).ToLocalChecked()->Value();
     config_req = new set_config_request();
     config_req->fltValue = dblValue;
     config_req->valueType = set_config_request::Float;
