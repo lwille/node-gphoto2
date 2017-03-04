@@ -8,16 +8,13 @@
     "type": "git",
     "url": "git://github.com/lwille/node-gphoto2.git"
   },
-  "engines": {
-    "node": "~0.10.0"
-  },
   "os": [
     "darwin",
     "linux"
   ],
   "main": "index.js",
   "dependencies": {
-    "nan": "^1.6.2"
+    "nan": "^2.5.1"
   },
   "devDependencies": {
     "async": "^0.2.10",
@@ -37,7 +34,7 @@
   "scripts": {
     "cpplint": "util/cpplint.sh",
     "prepublish": "npm run cpplint",
-    "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && dpkg -s libgphoto2-2-dev) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1)) && node-gyp rebuild",
+    "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && (dpkg -s libgphoto2-dev || dpkg -s libgphoto2-6-dev)) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1)) && node-gyp rebuild",
     "test": "node_modules/mocha/bin/mocha"
   },
   "license": "MIT",

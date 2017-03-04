@@ -28,6 +28,7 @@ int autodetect(CameraList *list, GPContext *context,
     ret = gp_port_info_list_count(*portinfolist);
     if (ret < 0) goto out;
   }
+
   /* Load all the camera drivers we have... */
   ret = gp_abilities_list_new(abilities);
   if (ret < GP_OK) goto out;
@@ -36,12 +37,9 @@ int autodetect(CameraList *list, GPContext *context,
 
   /* ... and autodetect the currently attached cameras. */
   ret = gp_abilities_list_detect(*abilities, *portinfolist, xlist, context);
-
   if (ret < GP_OK) goto out;
-
   /* Filter out the "usb:" entry */
   ret = gp_list_count(xlist);
-
   if (ret < GP_OK) goto out;
   for (i = 0; i < ret; i++) {
     const char *name, *value;

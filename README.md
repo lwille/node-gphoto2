@@ -16,9 +16,10 @@ take pictures.
 
 ## Prerequisites
 
-* Node.js ~0.10.0
+* Node.js Any version supported by nan
 * NPM ~1.2.15
-* libgphoto2 ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* Nan v2.5.1 
+* libgphoto2 ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * pkg-config | dpkg (used for dependency checking)
 * clang compiler
 
@@ -57,6 +58,13 @@ This example only shows how to achieve certain tasks, it's not meant to be execu
 var gphoto2 = require('gphoto2');
 var GPhoto = new gphoto2.GPhoto2();
 var fs = require('fs');
+
+
+GPhoto.on('log', function(level, err_name, err_msg){ 
+	console.log(err_name, err_msg); 
+})
+//Negative value or undefined will disable logging, levels 0-4 enable it.
+GPhoto.setLogLevel(1); 
 
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function (list) {
