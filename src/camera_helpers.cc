@@ -489,7 +489,7 @@ int GPCamera::setWidgetValue(CameraWidget *child, CameraWidgetType* type, std::s
 
     if (count < GP_OK)
       return count;
-    printf("In set widget func\n");
+
     // check the requested option matches one of the choices
     const char *choice;
     for (i = 0; i < count; i++) {
