@@ -1,1 +1,1 @@
-../../../node_modules/superagent/lib/client.js
+../../../node_modules/superagent/superagent.js

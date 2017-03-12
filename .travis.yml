@@ -1,7 +1,4 @@
 before_install:
-  - sudo add-apt-repository --yes ppa:dirk-computer42/c42-builddeps
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libgphoto2-6-dev
   - npm i nan
 install:
   - npm run preinstall
@@ -16,9 +13,13 @@ node_js:
   - 7.4.0
 env:
   - CXX=g++-4.8
+dist: trusty
 addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
+      - libgphoto2-6
+      - libgphoto2-dev
+      - libgphoto2-port10
