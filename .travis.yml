@@ -1,10 +1,7 @@
-before_install:
-  - npm i nan
 install:
-  - npm run preinstall
+  - npm install
 script:
   - util/cpplint.sh
-  - npm install
 language: node_js
 node_js:
   - "node"
