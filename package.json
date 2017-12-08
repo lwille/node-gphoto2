@@ -2,7 +2,7 @@
   "author": "Leonhardt Wille <wille@riverlabs.de>",
   "name": "gphoto2",
   "description": "Node.js wrapper for libgphoto2",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "homepage": "https://github.com/lwille/node-gphoto2",
   "repository": {
     "type": "git",
@@ -60,7 +60,7 @@
       "url": "https://github.com/michaelkoetter"
     },
     {
-      "name": "david noelte",
+      "name": "David Noelte",
       "email": "noelte@csb-doebeln.de",
       "url": "https://github.com/marvin"
     },
@@ -68,6 +68,15 @@
       "name": "Brian White",
       "email": "mscdex@mscdex.net",
       "url": "https://github.com/mscdex"
+    },
+    {
+      "name": "Tim Hunt",
+      "url": "https://github.com/mitnuh"
+    },
+    {
+      "name": "Sijawusz Pur Rahnama",
+      "email": "sija@sija.pl",
+      "url": "https://github.com/sija"
     }
   ]
 }
