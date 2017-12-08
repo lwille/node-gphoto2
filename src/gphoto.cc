@@ -85,7 +85,7 @@ NAN_METHOD(GPhoto2::List) {
 }
 
 NAN_METHOD(GPhoto2::SetLogLevel) {
-  Nan::HandleScope scope();
+  Nan::HandleScope scope;
   REQ_ARGS(1);
 
   GPhoto2 *gphoto = ObjectWrap::Unwrap<GPhoto2>(info.This());
