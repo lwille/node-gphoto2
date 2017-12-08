@@ -303,9 +303,8 @@ int GPCamera::getCameraFile(take_picture_request *req, CameraFile **file) {
     struct sockaddr_un serv_addr;
     bzero(&serv_addr, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
-    // req->socket_path.c_str();
     snprintf(serv_addr.sun_path, sizeof(serv_addr.sun_path),
-             "/tmp/preview.sock");
+              "%s", req->socket_path.c_str());
 
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
       perror("Creating socket");
@@ -360,7 +359,9 @@ void GPCamera::downloadPicture(take_picture_request *req) {
   }
 
   /* Fallback to downloading into buffer */
-  if (retval == GP_OK && req->target_path.empty()) {
+  if (retval == GP_OK &&
+      req->target_path.empty() &&
+      req->socket_path.empty()) {
     retval = gp_file_get_data_and_size(file, &data, &req->length);
     if (retval == GP_OK && req->length != 0) {
       /* `gp_file_free` will call `free` on `file->data` pointer, save data */
