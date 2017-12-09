@@ -15,10 +15,10 @@ The test suite can be run using `npm test`. There's also a small test applicatio
 
 ## Prerequisites
 
-* Node.js Any version supported by nan
-* NPM ~1.2.15
-* Nan v2.5.1 
-* libgphoto2 ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* Node.js: any version supported by [nodejs/nan](https://github.com/nodejs/nan)
+* NPM: ~5.6.0
+* Nan: ~2.8.0
+* libgphoto2: ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * pkg-config | dpkg (used for dependency checking)
 * clang compiler
 
