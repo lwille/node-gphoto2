@@ -1,8 +1,10 @@
 /* Copyright contributors of the node-gphoto2 project */
 
 #include <gphoto2/gphoto2-camera.h>
+
 #include <stdio.h>
 #include <string>
+
 #include "./binding.h"
 
 /**
@@ -48,6 +50,7 @@ int autodetect(CameraList *list, GPContext *context,
     if (!strcmp("usb:", value)) continue;
     gp_list_append(list, name, value);
   }
+
   out:
     gp_list_free(xlist);
     return gp_list_count(list);

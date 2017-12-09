@@ -11,8 +11,7 @@ The included test application currently allows you to
 * query a list of available configuration options
 * query the values of specific configuration options
 
-The test suite can be run using `npm test`. There's also a small test application in `test/test-server.coffee` which runs on `http://localhost:1337` and allows to change camera settings and to
-take pictures.
+The test suite can be run using `npm test`. There's also a small test application in `test/test-server.coffee` which runs on `http://localhost:1337` and allows to change camera settings and to take pictures.
 
 ## Prerequisites
 
@@ -55,16 +54,15 @@ Also, the script tries to detect wether libgphoto2 is correctly installed - if t
 This example only shows how to achieve certain tasks, it's not meant to be executed without any asynchronous control flow logic.
 
 ```javascript
+var fs = require('fs');
 var gphoto2 = require('gphoto2');
 var GPhoto = new gphoto2.GPhoto2();
-var fs = require('fs');
 
-
-GPhoto.on('log', function(level, err_name, err_msg){ 
-	console.log(err_name, err_msg); 
-})
-//Negative value or undefined will disable logging, levels 0-4 enable it.
-GPhoto.setLogLevel(1); 
+// Negative value or undefined will disable logging, levels 0-4 enable it.
+GPhoto.setLogLevel(1);
+GPhoto.on('log', function (level, domain, message) {
+  console.log(domain, message);
+});
 
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function (list) {

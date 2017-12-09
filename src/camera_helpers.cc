@@ -10,8 +10,8 @@
 #include <sstream>
 #include <string>
 #include <stdexcept>
-#include "./camera.h"
 
+#include "./camera.h"
 
 v8::Local<v8::Object>
 GPCamera::convertSettingsToObject(bool minify, GPContext *context, const A<TreeNode>::Tree &node) {
@@ -31,7 +31,7 @@ GPCamera::convertSettingsToObject(bool minify, GPContext *context, const A<TreeN
 
       const char *type_str = GP_WIDGET_WINDOW ? "window" : "section";
 
-      v8::Local<v8::Object> child =Nan::New<v8::Object>();
+      v8::Local<v8::Object> child = Nan::New<v8::Object>();
 
       Nan::Set(child, Nan::New<v8::String>("type").ToLocalChecked(), Nan::New<v8::String>(type_str).ToLocalChecked());
       Nan::Set(child, Nan::New<v8::String>("label").ToLocalChecked(), Nan::New<v8::String>(label).ToLocalChecked());
@@ -110,7 +110,7 @@ v8::Local<v8::Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *
     }
     break;
   }
-  case GP_WIDGET_DATE:  { /* int */
+  case GP_WIDGET_DATE: { /* int */
     int t;
     ret = gp_widget_get_value(widget, &t);
     if (ret != GP_OK) {
@@ -150,7 +150,7 @@ v8::Local<v8::Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *
     value->Set(Nan::New("choices").ToLocalChecked(), choices);
     break;
   }
-    /* ignore: */
+  /* ignore: */
   case GP_WIDGET_WINDOW: {
     value->Set(Nan::New("type").ToLocalChecked(), Nan::New("window").ToLocalChecked());
     break;
@@ -171,6 +171,7 @@ int GPCamera::setWidgetValue(set_config_request *req) {
   CameraWidget *child;
   CameraWidget *rootconfig;
   CameraWidgetType type;
+
   ret = getConfigWidget(req->context, req->camera, req->key, &child, &rootconfig);
   if (ret != GP_OK)
     goto finally;
@@ -182,8 +183,9 @@ int GPCamera::setWidgetValue(set_config_request *req) {
     goto finally;
 
   ret = gp_widget_get_type(child, &type);
-  if ( ret != GP_OK )
+  if (ret != GP_OK)
     goto finally;
+
   switch (req->valueType) {
   case set_config_request::String:
     ret = setWidgetValue(child, &type, req->strValue);
@@ -197,6 +199,7 @@ int GPCamera::setWidgetValue(set_config_request *req) {
     ret = setWidgetValue(child, &type, req->fltValue);
     break;
   }
+
   if (ret != GP_OK)
     goto finally;
   ret = gp_widget_set_changed(child, 1);
@@ -205,6 +208,7 @@ int GPCamera::setWidgetValue(set_config_request *req) {
   ret = gp_camera_set_config(req->camera, rootconfig, req->context);
   if (ret != GP_OK)
     goto finally;
+
 finally:
   gp_widget_free(rootconfig);
   return ret;
@@ -215,11 +219,9 @@ int GPCamera::getConfigWidget(GPContext *context, Camera *camera, std::string na
   int ret;
 
   ret = gp_camera_get_config(camera, rootconfig, context);
-
   if (ret != GP_OK) return ret;
 
   ret = gp_widget_get_child_by_name(*rootconfig, name.c_str(), child);
-
   // name not found --> path specified
   // recurse until the specified child is found
   if (ret != GP_OK) {
@@ -227,11 +229,13 @@ int GPCamera::getConfigWidget(GPContext *context, Camera *camera, std::string na
 
     newname = strdup(name.c_str());
     if (!newname) return GP_ERROR_NO_MEMORY;
+
     *child = *rootconfig;
     part = newname;
     while (part[0] == '/') {
       part++;
     }
+
     while (1) {
       CameraWidget *tmp;
       s = strchr(part, '/');
@@ -254,6 +258,7 @@ int GPCamera::getConfigWidget(GPContext *context, Camera *camera, std::string na
         part++;
       }
     }
+
     if (s) { /* if we have stuff left over, we failed */
       gp_context_error(context, "%s not found in configuration tree.",
                        newname);
@@ -295,6 +300,7 @@ int GPCamera::enumConfig(get_config_request *req, CameraWidget *root,
 int GPCamera::getCameraFile(take_picture_request *req, CameraFile **file) {
   int retval = GP_OK;
   int fd;
+
   if (!req->target_path.empty()) {
     char *tmpname = strdup(req->target_path.c_str());
     fd = mkstemp(tmpname);
@@ -304,7 +310,7 @@ int GPCamera::getCameraFile(take_picture_request *req, CameraFile **file) {
     bzero(&serv_addr, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     snprintf(serv_addr.sun_path, sizeof(serv_addr.sun_path),
-              "%s", req->socket_path.c_str());
+             "%s", req->socket_path.c_str());
 
     if ((fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
       perror("Creating socket");
@@ -389,11 +395,9 @@ void GPCamera::capturePreview(take_picture_request *req) {
   if (retval == GP_OK) {
     retval = gp_camera_capture_preview(req->camera, file, req->context);
   }
-
   if (!req->target_path.empty() || !req->socket_path.empty()) {
     gp_file_free(file);
   }
-
   req->ret = retval;
 }
 
@@ -420,8 +424,6 @@ void GPCamera::takePicture(take_picture_request *req) {
     downloadPicture(req);
   }
 }
-
-
 
 int GPCamera::setWidgetValue(CameraWidget *child, CameraWidgetType* type, int intval) {
   switch (*type) {
@@ -520,7 +522,7 @@ int GPCamera::setWidgetValue(CameraWidget *child, CameraWidgetType* type, std::s
     return ret;
   }
 
-    /* ignore: */
+  /* ignore: */
   case GP_WIDGET_WINDOW:
   case GP_WIDGET_SECTION:
   case GP_WIDGET_BUTTON:
@@ -570,4 +572,3 @@ int GPCamera::setWidgetValue(CameraWidget *child, CameraWidgetType* type, float 
     return GP_ERROR_BAD_PARAMETERS;
   }
 }
-

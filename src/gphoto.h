@@ -9,7 +9,6 @@
 
 #include "./binding.h"
 
-
 class GPCamera;
 
 static v8::Persistent<v8::String> gphoto_list_symbol;
@@ -19,8 +18,8 @@ class GPhoto2 : public Nan::ObjectWrap {
   struct log_request;
 
   GPContext *context_;
-  GPPortInfoList   *portinfolist_ = NULL;
-  CameraAbilitiesList  *abilities_ = NULL;
+  GPPortInfoList *portinfolist_ = NULL;
+  CameraAbilitiesList *abilities_ = NULL;
 
   uv_async_t asyncLog;
   uv_mutex_t logMutex;
@@ -61,6 +60,9 @@ class GPhoto2 : public Nan::ObjectWrap {
   static NAN_METHOD(List);
   static NAN_METHOD(SetLogLevel);
 
+  static void LogHandler(GPLogLevel level, const char *domain, const char *str, void *data);
+  static void Async_LogClose(uv_handle_t *handle);
+
   GPContext *getContext() {
     return this->context_;
   }
@@ -83,8 +85,6 @@ class GPhoto2 : public Nan::ObjectWrap {
 
   int openCamera(GPCamera *camera);
   int closeCamera(GPCamera *camera);
-  static void LogHandler(GPLogLevel level, const char *domain, const char *str, void *data);
-  static void Async_LogClose(uv_handle_t *handle);
 };
 
 #endif  // SRC_GPHOTO_H_

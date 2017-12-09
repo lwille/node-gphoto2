@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "././camera.h"
+#include "./camera.h"
 #include "./gphoto.h"
 
 Nan::Persistent<v8::Function> GPhoto2::constructor;
@@ -31,16 +31,16 @@ GPhoto2::GPhoto2() : Nan::ObjectWrap(), portinfolist_(NULL), abilities_(NULL) {
 }
 
 GPhoto2::~GPhoto2() {
-    if (logFuncId) {
-        gp_log_remove_func(logFuncId);
-        logFuncId = 0;
-    }
+  if (logFuncId) {
+    gp_log_remove_func(logFuncId);
+    logFuncId = 0;
+  }
 
-    if (emitFuncCb != NULL) {
-        emitFuncCb->Reset();
-        delete emitFuncCb;
-        emitFuncCb = NULL;
-    }
+  if (emitFuncCb != NULL) {
+    emitFuncCb->Reset();
+    delete emitFuncCb;
+    emitFuncCb = NULL;
+  }
 }
 
 NAN_MODULE_INIT(GPhoto2::Initialize) {
@@ -109,7 +109,6 @@ NAN_METHOD(GPhoto2::SetLogLevel) {
   return info.GetReturnValue().SetUndefined();
 }
 
-
 void GPhoto2::LogHandler(GPLogLevel level, const char *domain, const char *str, void *data) {
   GPhoto2 *gphoto = static_cast<GPhoto2*>(data);
   log_request *message = new log_request();
@@ -139,13 +138,14 @@ NAUV_WORK_CB(GPhoto2::Async_LogCallback) {
   uv_mutex_lock(&gphoto->logMutex);
 
   for (auto message : gphoto->logMessages) {
-      v8::Local<v8::Value> args[] = {
-        Nan::New("log").ToLocalChecked(),
-        Nan::New(message->level),
-        Nan::New(message->domain.c_str()).ToLocalChecked(),
-        Nan::New(message->message.c_str()).ToLocalChecked() };
-      gphoto->emitFuncCb->Call(gphoto->handle(), 4, args);
-      delete message;
+    v8::Local<v8::Value> args[] = {
+      Nan::New("log").ToLocalChecked(),
+      Nan::New(message->level),
+      Nan::New(message->domain.c_str()).ToLocalChecked(),
+      Nan::New(message->message.c_str()).ToLocalChecked()
+    };
+    gphoto->emitFuncCb->Call(gphoto->handle(), 4, args);
+    delete message;
   }
 
   gphoto->logMessages.clear();
@@ -153,7 +153,6 @@ NAUV_WORK_CB(GPhoto2::Async_LogCallback) {
   uv_unref(reinterpret_cast<uv_handle_t*>(&gphoto->asyncLog));
   uv_mutex_unlock(&gphoto->logMutex);
 }
-
 
 void GPhoto2::Async_List(uv_work_t *req) {
   list_request *list_req = static_cast<list_request *>(req->data);
@@ -174,46 +173,49 @@ void GPhoto2::Async_List(uv_work_t *req) {
 }
 
 void GPhoto2::Async_ListCb(uv_work_t *req, int status) {
-    Nan::HandleScope scope;
-    int i;
-    list_request *list_req = static_cast<list_request *>(req->data);
-    Nan::TryCatch try_catch;
-    v8::Local<v8::Value> argv[1];
+  Nan::HandleScope scope;
+  int i;
+  list_request *list_req = static_cast<list_request *>(req->data);
+  Nan::TryCatch try_catch;
+  v8::Local<v8::Value> argv[1];
 
-    int count = gp_list_count(list_req->list);
-    v8::Local<v8::Array> result = Nan::New<v8::Array>(count);
-    argv[0] = result;
+  int count = gp_list_count(list_req->list);
+  v8::Local<v8::Array> result = Nan::New<v8::Array>(count);
+  argv[0] = result;
 
-    for (i = 0; i < count; i++) {
-      const char *name_, *port_;
+  for (i = 0; i < count; i++) {
+    const char *name_, *port_;
 
-      gp_list_get_name(list_req->list, i, &name_);
-      gp_list_get_value(list_req->list, i, &port_);
+    gp_list_get_name(list_req->list, i, &name_);
+    gp_list_get_value(list_req->list, i, &port_);
 
-      v8::Local<v8::Value> _argv[3];
-      _argv[0] = Nan::New<v8::External>(list_req->gphoto);
-      _argv[1] = Nan::New(name_).ToLocalChecked();
-      _argv[2] = Nan::New(port_).ToLocalChecked();
-      // call the _javascript_ constructor to create a new Camera object
-      v8::Local<v8::Object> js_camera = Nan::NewInstance(Nan::New(GPCamera::constructor), 3, _argv).ToLocalChecked();
+    v8::Local<v8::Value> _argv[3];
+    _argv[0] = Nan::New<v8::External>(list_req->gphoto);
+    _argv[1] = Nan::New(name_).ToLocalChecked();
+    _argv[2] = Nan::New(port_).ToLocalChecked();
+    // call the _javascript_ constructor to create a new Camera object
+    v8::Local<v8::Object> js_camera = Nan::NewInstance(Nan::New(GPCamera::constructor), 3, _argv).ToLocalChecked();
 
-      js_camera->Set(Nan::New("_gphoto2_ref_obj_").ToLocalChecked(), Nan::New(list_req->This));
-      result->Set(Nan::New(i), js_camera);
-      if (try_catch.HasCaught())
-          goto finally;
+    js_camera->Set(Nan::New("_gphoto2_ref_obj_").ToLocalChecked(), Nan::New(list_req->This));
+    result->Set(Nan::New(i), js_camera);
+    if (try_catch.HasCaught()) {
+      goto finally;
     }
+  }
 
-    list_req->cb.Call(1, argv);
+  list_req->cb.Call(1, argv);
 
 finally:
-    gp_context_unref(list_req->context);
-    gp_list_free(list_req->list);
-    list_req->cb.Reset();
-    list_req->This.Reset();
-    list_req->gphoto->Unref();
-    delete list_req;
-    delete req;
-    if (try_catch.HasCaught()) return Nan::FatalException(try_catch);
+  gp_context_unref(list_req->context);
+  gp_list_free(list_req->list);
+  list_req->cb.Reset();
+  list_req->This.Reset();
+  list_req->gphoto->Unref();
+  delete list_req;
+  delete req;
+  if (try_catch.HasCaught()) {
+    return Nan::FatalException(try_catch);
+  }
 }
 
 int GPhoto2::openCamera(GPCamera *p) {

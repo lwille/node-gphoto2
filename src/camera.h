@@ -6,6 +6,7 @@
 #include <list>
 #include <map>
 #include <string>
+
 #include "./binding.h"
 #include "./gphoto.h"
 
@@ -13,14 +14,12 @@
  * Class for templated typedef's
  * Initialize as A<Typename>::Tree etc.
  */
-
 template <typename T> class A {
  private:
   A(void) {}
  public:
   typedef std::map<std::string, T> Tree;
 };
-
 
 struct TreeNode {
   CameraWidget* value;
@@ -41,6 +40,7 @@ static v8::Persistent<v8::String> camera_downloadPicture_symbol;
 
 class GPCamera : public Nan::ObjectWrap {
   uv_mutex_t cameraMutex;
+
   void lock() {
     uv_mutex_lock(&this->cameraMutex);
   }
@@ -54,6 +54,7 @@ class GPCamera : public Nan::ObjectWrap {
   GPhoto2 *gphoto_;
   Camera *camera_;
   CameraWidget *config_;
+
   bool isOpen() {
     return this->camera_ ? true : false;
   }
