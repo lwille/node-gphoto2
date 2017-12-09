@@ -126,3 +126,5 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 * [Leonhardt Wille](https://github.com/lwille)
 * [Luigi Pinca](https://github.com/lpinca)
 * [Michael Kötter](https://github.com/michaelkoetter)
+* [Tim Hunt](https://github.com/mitnuh)
+* [Sijawusz Pur Rahnama](https://github.com/sija)
