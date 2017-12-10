@@ -21,7 +21,7 @@
     "coffee-script": "^1.7.1",
     "express": "^3.1.2",
     "jade": "^0.28.2",
-    "mocha": "^1.9.0",
+    "mocha": "^3.5.3",
     "pre-commit": "^0.0.8",
     "should": "^1.2.2",
     "sinon": "^1.6.0",
@@ -36,7 +36,7 @@
     "prepare": "npm run cpplint",
     "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && (dpkg -s libgphoto2-dev || dpkg -s libgphoto2-6-dev)) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1))",
     "install": "node-gyp rebuild",
-    "test": "node_modules/mocha/bin/mocha"
+    "test": "mocha"
   },
   "license": "MIT",
   "contributors": [
