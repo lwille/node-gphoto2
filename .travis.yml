@@ -1,22 +1,31 @@
 install:
-  - npm install
+- npm install
 script:
-  - npm run cpplint
+- npm run cpplint
 language: node_js
 node_js:
-  - "node"
-  - "lts/*"
-  - "0.12"
-  - "0.10"
+- node
+- lts/*
+- '0.12'
+- '0.10'
 env:
-  - CXX=g++-4.8
+- CXX=g++-4.8
 dist: trusty
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+    - ubuntu-toolchain-r-test
     packages:
-      - g++-4.8
-      - libgphoto2-6
-      - libgphoto2-dev
-      - libgphoto2-port10
+    - g++-4.8
+    - libgphoto2-6
+    - libgphoto2-dev
+    - libgphoto2-port10
+deploy:
+  provider: npm
+  email: hallo@leonhardt-wille.de
+  api_key:
+    secure: rHhx0pg6Dyzxv/zVEgoz9NUh4mXh6xoi8267lILdyedczjh28hvz44zJrASDZnJhp+JWGKfg3ywjGaDJsgKmibHjQjzQE+gvzILvfX5AX3o4ds6csKoNc0VJoY6/ynUCJ6gOzl2C9QwlB1h74R8ZMuAHWwUsjgAYKtAQfDmk2qk=
+  on:
+    tags: true
+    repo: lwille/node-gphoto2
+    branch: feature/nan
