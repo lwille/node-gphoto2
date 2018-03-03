@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/lwille/node-gphoto2.git"
+    "url": "https://github.com/lwille/node-gphoto2.git"
   },
   "os": [
     "darwin",
