@@ -1,11 +1,19 @@
 before_install:
-  - sudo add-apt-repository --yes ppa:dirk-computer42/c42-builddeps
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libgphoto2-6-dev
+- sudo add-apt-repository --yes ppa:dirk-computer42/c42-builddeps
+- sudo apt-get update -qq
+- sudo apt-get install -qq libgphoto2-6-dev
 install:
-  - npm run preinstall
+- npm run preinstall
 script:
-  - util/cpplint.sh
+- util/cpplint.sh
 language: node_js
 node_js:
-  - 0.10
+- 0.1
+deploy:
+  provider: npm
+  email: hallo@leonhardt-wille.de
+  api_key:
+    secure: N57mOcmzV0z9Y/DjlHhhf0gDxGiaCdIvhObQCr+g8KncIvpj0CVCx39RyC/BWZDuZmRvtcysNY+NmPPbDgDxUlAVW/mTdjWmfFP8Dg0bbK3ooyhtEgQi9ri8r+80v1LrKuhM5FupocjmPUSFFDECdS9JPbjkwxxXcFrajNMJDVE=
+  on:
+    tags: true
+    repo: lwille/node-gphoto2
