@@ -28,4 +28,3 @@ deploy:
   on:
     tags: true
     repo: lwille/node-gphoto2
-    branch: feature/nan
