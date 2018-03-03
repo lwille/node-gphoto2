@@ -4,6 +4,11 @@
   "description": "Node.js wrapper for libgphoto2",
   "version": "0.2.0-rc1",
   "homepage": "https://github.com/lwille/node-gphoto2",
+  "keywords": [
+    "photography",
+    "dslr",
+    "gphoto2"
+  ],
   "repository": {
     "type": "git",
     "url": "git://github.com/lwille/node-gphoto2.git"
