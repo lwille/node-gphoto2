@@ -1,7 +1,7 @@
 #!/bin/sh
 
 exit_status=0
-linter="python util/cpplint.py --root=$(pwd)"
+linter="python util/cpplint.py --root=$(pwd) --linelength=120"
 
 target_files() {
   find src -maxdepth 1 -type f | grep -E "\.(cc|h)$"

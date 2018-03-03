@@ -11,14 +11,14 @@ The included test application currently allows you to
 * query a list of available configuration options
 * query the values of specific configuration options
 
-The test suite can be run using `npm test`. There's also a small test application in `test/test-server.coffee` which runs on `http://localhost:1337` and allows to change camera settings and to
-take pictures.
+The test suite can be run using `npm test`. There's also a small test application in `test/test-server.coffee` which runs on `http://localhost:1337` and allows to change camera settings and to take pictures.
 
 ## Prerequisites
 
-* Node.js ~0.10.0
-* NPM ~1.2.15
-* libgphoto2 ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
+* Node.js: any version supported by [nodejs/nan](https://github.com/nodejs/nan)
+* NPM: ~5.6.0
+* Nan: ~2.8.0
+* libgphoto2: ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * pkg-config | dpkg (used for dependency checking)
 * clang compiler
 
@@ -54,9 +54,15 @@ Also, the script tries to detect wether libgphoto2 is correctly installed - if t
 This example only shows how to achieve certain tasks, it's not meant to be executed without any asynchronous control flow logic.
 
 ```javascript
+var fs = require('fs');
 var gphoto2 = require('gphoto2');
 var GPhoto = new gphoto2.GPhoto2();
-var fs = require('fs');
+
+// Negative value or undefined will disable logging, levels 0-4 enable it.
+GPhoto.setLogLevel(1);
+GPhoto.on('log', function (level, domain, message) {
+  console.log(domain, message);
+});
 
 // List cameras / assign list item to variable to use below options
 GPhoto.list(function (list) {
@@ -120,3 +126,5 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 * [Leonhardt Wille](https://github.com/lwille)
 * [Luigi Pinca](https://github.com/lpinca)
 * [Michael Kötter](https://github.com/michaelkoetter)
+* [Tim Hunt](https://github.com/mitnuh)
+* [Sijawusz Pur Rahnama](https://github.com/sija)

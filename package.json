@@ -2,24 +2,26 @@
   "author": "Leonhardt Wille <wille@riverlabs.de>",
   "name": "gphoto2",
   "description": "Node.js wrapper for libgphoto2",
-  "version": "0.1.7",
+  "version": "0.2.0-rc1",
   "homepage": "https://github.com/lwille/node-gphoto2",
   "repository": {
     "type": "git",
     "url": "git://github.com/lwille/node-gphoto2.git"
   },
-  "engines": {
-    "node": "~0.10.0"
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "main": "index.js",
+  "dependencies": {
+    "nan": "^2.8.0"
   },
-  "os" : [ "darwin", "linux" ],
-  "main": "build/Release/gphoto2.node",
-  "dependencies": {},
   "devDependencies": {
     "async": "^0.2.10",
     "coffee-script": "^1.7.1",
     "express": "^3.1.2",
     "jade": "^0.28.2",
-    "mocha": "^1.9.0",
+    "mocha": "^3.5.3",
     "pre-commit": "^0.0.8",
     "should": "^1.2.2",
     "sinon": "^1.6.0",
@@ -31,9 +33,10 @@
   ],
   "scripts": {
     "cpplint": "util/cpplint.sh",
-    "prepublish": "npm run cpplint",
-    "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && dpkg -s libgphoto2-2-dev) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1)) && node-gyp rebuild",
-    "test": "node_modules/mocha/bin/mocha"
+    "prepare": "npm run cpplint",
+    "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && (dpkg -s libgphoto2-dev || dpkg -s libgphoto2-6-dev)) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1))",
+    "install": "node-gyp rebuild",
+    "test": "mocha"
   },
   "license": "MIT",
   "contributors": [
@@ -58,7 +61,7 @@
       "url": "https://github.com/michaelkoetter"
     },
     {
-      "name": "david noelte",
+      "name": "David Noelte",
       "email": "noelte@csb-doebeln.de",
       "url": "https://github.com/marvin"
     },
@@ -66,6 +69,15 @@
       "name": "Brian White",
       "email": "mscdex@mscdex.net",
       "url": "https://github.com/mscdex"
+    },
+    {
+      "name": "Tim Hunt",
+      "url": "https://github.com/mitnuh"
+    },
+    {
+      "name": "Sijawusz Pur Rahnama",
+      "email": "sija@sija.pl",
+      "url": "https://github.com/sija"
     }
   ]
 }

@@ -7,14 +7,17 @@ extern "C" {
   #include <gphoto2/gphoto2-camera.h>
   #include <gphoto2/gphoto2-port-log.h>
 }
-#include <node.h>
-#include <node_buffer.h>
-#include <cstdlib>
+
+#include <v8.h>
+#include <nan.h>
+
 #include <string>
 #include <list>
 #include <map>
-
-#include "cvv8/v8-convert.hpp"
+#include <cstdlib>
+#include <cctype>
+#include <cwctype>
+#include <sstream>
 
 #define ASYNC_FN(NAME) static void NAME(uv_work_t* req);
 #define ASYNC_CB(NAME) static void NAME(uv_work_t* req, int status);
@@ -25,66 +28,49 @@ extern "C" {
   uv_queue_work(uv_default_loop(), req, ASYNC, AFTER);
 
 #define REQ_ARGS(N)                                         \
-  if (args.Length() < (N))                                  \
-    return ThrowException(Exception::TypeError(             \
-      String::New("Expected " #N "arguments")));
+  if (info.Length() < (N)) {                                \
+    return Nan::ThrowTypeError("Expected " #N "arguments"); \
+  }
 
-#define ADD_PROTOTYPE_METHOD(class, name, method)                 \
-  class ## _ ## name ## _symbol = NODE_PSYMBOL(#name);            \
+#define ADD_PROTOTYPE_METHOD(class, name, method)           \
+  class ## _ ## name ## _symbol = NODE_PSYMBOL(#name);      \
   NODE_SET_PROTOTYPE_METHOD(constructor_template, #name, method);
 
 #define REQ_EXT_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsExternal()) {     \
-    return ThrowException(Exception::TypeError(             \
-      String::New("Argument " #I " invalid")));             \
+  if (info.Length() <= (I) || !info[I]->IsExternal()) {     \
+    return Nan::ThrowTypeError("Argument " #I " invalid");  \
   }                                                         \
-  Local<External> VAR = Local<External>::Cast(args[I]);
+  v8::Local<v8::External> VAR = v8::Local<v8::External>::Cast(info[I]);
 
 #define REQ_FUN_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsFunction()) {     \
-    return ThrowException(Exception::TypeError(             \
-      String::New("Argument " #I " must be a function")));  \
+  if (info.Length() <= (I) || !info[I]->IsFunction()) {     \
+    return Nan::ThrowTypeError("Argument " #I " must be a function"); \
   }                                                         \
-  Local<Function> VAR = Local<Function>::Cast(args[I]);
+  v8::Local<v8::Function> VAR = v8::Local<v8::Function>::Cast(info[I]);
 
 #define REQ_OBJ_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsObject()) {       \
-    return ThrowException(Exception::TypeError(             \
-      String::New("Argument " #I " must be an Object")));   \
+  if (info.Length() <= (I) || !info[I]->IsObject()) {       \
+    return Nan::ThrowTypeError("Argument " #I " must be a function"); \
   }                                                         \
-  Local<Array> VAR = Local<Array>::Cast(args[I]);
+  v8::Local<v8::Object> VAR = v8::Local<v8::Array>::Cast(info[I]);
 
 #define REQ_ARR_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsArray()) {        \
-    return ThrowException(Exception::TypeError(             \
-      String::New("Argument " #I " must be an Array")));    \
+  if (info.Length() <= (I) || !info[I]->IsArray()) {        \
+    return Nan::ThrowTypeError("Argument " #I " must be an Array");   \
   }                                                         \
-  Local<Array> VAR = Local<Array>::Cast(args[I]);
+  v8::Local<v8::Array> VAR = v8::Local<v8::Array>::Cast(info[I]);
 
 #define REQ_STR_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsString()) {       \
-    return ThrowException(Exception::TypeError(             \
-      String::New("Argument " #I " must be a string")));    \
+  if (info.Length() <= (I) || !info[I]->IsString()) {       \
+    return Nan::ThrowTypeError("Argument " #I " must be a string");   \
   }                                                         \
-  String::Utf8Value VAR(args[I]->ToString());
+  v8::String::Utf8Value VAR(info[I]->ToString());
 
 #define REQ_INT_ARG(I, VAR)                                 \
-  if (args.Length() <= (I) || !args[I]->IsInt32()) {        \
-    return ThrowException(Exception::TypeError(             \
-      String::New("Argument " #I " must be an integer")));  \
+  if (info.Length() <= (I) || !info[I]->IsInt32()) {        \
+    return Nan::ThrowTypeError("Argument " #I " must be an integer"); \
   }                                                         \
-  int VAR = args[I]->Int32Value();
-
-#define RETURN_ON_ERROR(REQ, FNAME, ARGS, CLEANUP)          \
-  REQ->ret = FNAME ARGS;                                    \
-  if (REQ->ret < GP_OK) {                                   \
-    printf(#FNAME"=%d\n", REQ->ret);                        \
-    CLEANUP;                                                \
-    return;                                                 \
-  }
-
-#define V8STR(str) String::New(str)
-#define V8STR2(str, len) String::New(str, len)
+  int VAR = info[I]->Int32Value();
 
 // Useful functions taken from library examples, with slight modifications
 int open_camera(Camera **camera, std::string model, std::string port,

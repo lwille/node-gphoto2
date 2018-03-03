@@ -1,9 +1,11 @@
 /* Copyright contributors of the node-gphoto2 project */
 
 #include <gphoto2/gphoto2-camera.h>
+
 #include <stdio.h>
 #include <string>
-#include "binding.h"  // NOLINT
+
+#include "./binding.h"
 
 /**
  * This detects all currently attached cameras and returns
@@ -28,6 +30,7 @@ int autodetect(CameraList *list, GPContext *context,
     ret = gp_port_info_list_count(*portinfolist);
     if (ret < 0) goto out;
   }
+
   /* Load all the camera drivers we have... */
   ret = gp_abilities_list_new(abilities);
   if (ret < GP_OK) goto out;
@@ -36,12 +39,9 @@ int autodetect(CameraList *list, GPContext *context,
 
   /* ... and autodetect the currently attached cameras. */
   ret = gp_abilities_list_detect(*abilities, *portinfolist, xlist, context);
-
   if (ret < GP_OK) goto out;
-
   /* Filter out the "usb:" entry */
   ret = gp_list_count(xlist);
-
   if (ret < GP_OK) goto out;
   for (i = 0; i < ret; i++) {
     const char *name, *value;
@@ -50,6 +50,7 @@ int autodetect(CameraList *list, GPContext *context,
     if (!strcmp("usb:", value)) continue;
     gp_list_append(list, name, value);
   }
+
   out:
     gp_list_free(xlist);
     return gp_list_count(list);

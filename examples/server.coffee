@@ -1,7 +1,7 @@
 process.title = 'node-gphoto2 test program'
 global[id] ?= require name for id, name of {
   "fs"
-  "GPhoto":"../build/Release/gphoto2"
+  "GPhoto":"../"
   "express"
   _: "underscore"
 }
