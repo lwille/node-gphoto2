@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/lwille/node-gphoto2.svg?branch=master)](https://travis-ci.org/lwille/node-gphoto2)
 [![NPM version](https://badge.fury.io/js/gphoto2.svg)](http://badge.fury.io/js/gphoto2)
 
+[Become a Patron](https://www.patreon.com/lwille)
+
 A Node.js wrapper for [libgphoto2](http://www.gphoto.org). Useful for remote controlling of DSLRs and other digital cameras supported by [gphoto2](http://www.gphoto.org).
 
 The included test application currently allows you to
