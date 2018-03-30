@@ -87,7 +87,7 @@ GPhoto.list(function (list) {
     fs.writeFileSync(__dirname + '/picture.jpg', data);
   });
 
-  // Take picture with camera object obtained from list()
+  // Take picture and keep image on camera
   camera.takePicture({
     download: true,
     keep: true
