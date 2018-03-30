@@ -82,6 +82,11 @@ NAN_METHOD(GPCamera::TakePicture) {
     if (preVal->IsBoolean()) {
       picture_req->preview = preVal->ToBoolean()->Value();
     }
+
+    v8::Local<v8::Value> keepVal = options->Get(Nan::New("keep").ToLocalChecked());
+    if (keepVal->IsBoolean()) {
+      picture_req->keep = keepVal->ToBoolean()->Value();
+    }
   } else {
     REQ_FUN_ARG(0, cb);
     picture_req = new take_picture_request();
