@@ -44,6 +44,10 @@ batch@0.5.3:
   version "0.5.3"
   resolved "https://registry.npmjs.org/batch/-/batch-0.5.3.tgz#3f3414f380321743bfc1042f9a83ff1d5824d464"
 
+bluebird@^3.5.1:
+  version "3.5.1"
+  resolved "https://registry.npmjs.org/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
+
 body-parser@~1.13.3:
   version "1.13.3"
   resolved "https://registry.npmjs.org/body-parser/-/body-parser-1.13.3.tgz#c08cf330c3358e151016a05746f13f029c97fa97"

@@ -19,6 +19,7 @@
   ],
   "main": "index.js",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "nan": "^2.10.0",
     "node-cmake": "^2.5.1"
   },
