@@ -5,3 +5,5 @@ v8.log
 node_modules/
 .DS_Store
 npm-debug.log
+.idea
+yarn-error.log
