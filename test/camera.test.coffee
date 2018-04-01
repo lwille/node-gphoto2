@@ -70,7 +70,18 @@ describe "node-gphoto2", ()->
 
      it 'and download it to a buffer', (done)->
        @timeout 10000
-       cameras[0].takePicture download:true, (er, data)->
+       cameras[0].takePicture download:true, keep:false, (er, data)->
+         try
+           should.not.exist er
+           data.should.be.an.instanceOf Buffer
+           checkJpegHeader data
+           done()
+         catch error
+           done error
+
+      it 'and keep it on camera', (done)->
+       @timeout 10000
+       cameras[0].takePicture download:true, keep:true, (er, data)->
          try
            should.not.exist er
            data.should.be.an.instanceOf Buffer

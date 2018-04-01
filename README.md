@@ -87,6 +87,14 @@ GPhoto.list(function (list) {
     fs.writeFileSync(__dirname + '/picture.jpg', data);
   });
 
+  // Take picture and keep image on camera
+  camera.takePicture({
+    download: true,
+    keep: true
+  }, function (er, data) {
+    fs.writeFileSync(__dirname + '/picture.jpg', data);
+  });
+
   // Take picture without downloading immediately
   camera.takePicture({download: false}, function (er, path) {
     console.log(path);
