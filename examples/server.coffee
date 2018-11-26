@@ -1,8 +1,9 @@
 process.title = 'node-gphoto2 test program'
 global[id] ?= require name for id, name of {
   "fs"
-  "GPhoto":"../"
+  "GPhoto": "../"
   "express"
+  "bodyParser": "body-parser"
   _: "underscore"
 }
 
@@ -30,9 +31,9 @@ gphoto.list (cameras)->
 app = express()
 
 app.use express.static __dirname + '/public'
-app.use express.bodyParser()
+app.use bodyParser.json()
 
-app.engine '.html', require('jade').__express
+app.engine '.html', require('pug').__express
 app.get '/', (req, res)->
   res.render 'index.html'
 
@@ -49,42 +50,42 @@ logRequests = ()->
 # save configuration
 app.put '/settings/:name', (req, res)->
   unless camera
-    res.send 404, 'Camera not connected'
+    res.status(404).send 'Camera not connected'
   else
     camera.setConfigValue req.params.name, req.body.newValue, (er)->
       if er
-        res.send 404, JSON.stringify(er)
+        res.status(404).send JSON.stringify(er)
       else
-        res.send 200
+        res.sendStatus 200
 
 # get configuration
 app.get '/settings', (req, res)->
   unless camera
-    res.send 404, 'Camera not connected'
+    res.status(404).send 'Camera not connected'
   else
     camera.getConfig (er, settings)->
       res.send JSON.stringify(settings)
 
 app.get '/download/*', (req, res)->
   unless camera
-    res.send 404, 'Camera not connected'
+    res.status(404).send 'Camera not connected'
   else
     if (match = req.url.match /download(.*)$/) and (path = match[1])
       console.log "trying to DL #{path}"
       camera.downloadPicture {cameraPath: path}, (er, data)->
         if er
-          res.send 404, er
+          res.status(404).send er
         else
           res.header 'Content-Type', 'image/jpeg'
           res.send data
 
 app.get '/takePicture', (req, res)->
   unless camera
-    res.send 404, 'Camera not connected'
+    res.status(404).send 'Camera not connected'
   else
     camera.takePicture download:(if req.query.download is 'false' then false else true), (er, data)->
       if er
-        res.send 404, er
+        res.status(404).send er
       else
         if req.query.download is 'false'
           console.log data
@@ -95,7 +96,7 @@ app.get '/takePicture', (req, res)->
 
 app.get '/preview*', (req, res)->
   unless camera
-    res.send 404, 'Camera not connected'
+    res.status(404).send 'Camera not connected'
   else
     preview_listeners.push res
     if preview_listeners.length is 1

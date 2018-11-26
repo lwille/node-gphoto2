@@ -19,19 +19,19 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "nan": "^2.9.2"
+    "nan": "^2.11.1"
   },
   "devDependencies": {
-    "async": "^0.2.10",
-    "coffee-script": "^1.7.1",
-    "express": "^3.1.2",
-    "jade": "^0.28.2",
-    "mocha": "^3.5.3",
-    "pre-commit": "^0.0.8",
-    "should": "^1.2.2",
-    "sinon": "^1.6.0",
-    "superagent": "^0.14.9",
-    "underscore": "^1.4.4"
+    "async": "^2.6.1",
+    "coffeescript": "^2.3.2",
+    "express": "^4.16.4",
+    "mocha": "^5.2.0",
+    "pre-commit": "^1.2.2",
+    "pug": "^2.0.3",
+    "should": "^13.2.3",
+    "sinon": "^7.1.1",
+    "superagent": "^4.0.0",
+    "underscore": "^1.9.1"
   },
   "pre-commit": [
     "cpplint"

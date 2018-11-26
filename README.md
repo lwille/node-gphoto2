@@ -13,7 +13,7 @@ The included test application currently allows you to
 * query a list of available configuration options
 * query the values of specific configuration options
 
-The test suite can be run using `npm test`. There's also a small test application in `test/test-server.coffee` which runs on `http://localhost:1337` and allows to change camera settings and to take pictures.
+The test suite can be run using `npm test`. There's also a small test application (`npx coffee examples/server.coffee`) which runs on `http://localhost:1337` and allows to change camera settings and to take pictures.
 
 ## Prerequisites
 

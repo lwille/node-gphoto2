@@ -26,7 +26,7 @@
       stopPreview: ()->
         $('#img').unbind('load')
       loadSettings: (cb)=>
-        request.get '/settings', (settings)=>
+        request.get('/settings').then (settings)=>
           cb JSON.parse(settings.text) if cb
           
       enumSettings: (settings, gui)=>
@@ -40,14 +40,14 @@
             foo[val.label] = val.value
             changeFn = (newValue)->
                 console.log val.label, "changed to", newValue
-                request.put "/settings/#{key}", newValue:newValue, (response)->
+                request.put("/settings/#{key}", newValue:newValue).then (response)->
                   console.log response
             if val.type is 'string'
               gui.add(foo, val.label).onChange changeFn
             else if val.type is 'toggle'
               foo[val.label] = val.value != 0
               gui.add(foo, val.label).onChange (newValue)->
-                request.put "/settings/#{key}", newValue: (if newValue then 1 else 0), (response)->
+                request.put("/settings/#{key}", newValue: (if newValue then 1 else 0)).then (response)->
                   console.log response
             else if val.type is 'choice'
               gui.add(foo, val.label, val.choices).onChange(changeFn)
@@ -61,7 +61,7 @@
           'Start live preview' : ()=>
             @startPreview()
           'Take picture': ()=>
-            request.get 'takePicture', download:false, (res)=>
+            request.get('takePicture', download:false).then (res)=>
               console.log res
               if res.text
                 $('<a>').attr('href', res.text).text(res.text).appendTo($('#downloads')).css('display':'block')
@@ -75,7 +75,7 @@
     window.gphoto.displaySettings()
   </script>
   </script>
-  <script type="text/javascript" src="/js/coffee-script.js"></script>
+  <script type="text/javascript" src="/js/coffeescript.js"></script>
   
 </body>
 </html>
