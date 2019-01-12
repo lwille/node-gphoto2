@@ -62,7 +62,7 @@ describe "node-gphoto2", ()->
        cameras[0].takePicture download:false, (er, file)->
          try
            should.not.exist er
-           file.should.be.a 'string'
+           file.should.be.a.String()
            cameras[0].firstPicture = file
            done()
          catch error
@@ -95,7 +95,7 @@ describe "node-gphoto2", ()->
        cameras[0].takePicture download:true, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
          try
            should.not.exist er
-           file.should.be.a 'string'
+           file.should.be.a.String()
            fs.exists file, (exists)->
              if exists
                tempfiles.push file
@@ -110,7 +110,7 @@ describe "node-gphoto2", ()->
        cameras[0].downloadPicture cameraPath:cameras[0].firstPicture, targetPath: '/tmp/foo.XXXXXXX', (er, file)->
          try
            should.not.exist er
-           file.should.be.a 'string'
+           file.should.be.a.String()
            fs.exists file, (exists)->
              if exists
                tempfiles.push file
@@ -124,7 +124,7 @@ describe "node-gphoto2", ()->
     @timeout 10000
     cameras[0].takePicture download:true, targetPath: '/path/does/not/exist/foo.XXXXXXX', (er, file)->
       try
-        er.should.be.a 'number'
+        er.should.be.a.Number()
         done()
       catch error
         done error

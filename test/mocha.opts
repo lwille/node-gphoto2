@@ -1,2 +1,3 @@
 --reporter list
---compilers coffee:coffee-script/register
+--require coffeescript/register
+test/**/*.{js,coffee}
