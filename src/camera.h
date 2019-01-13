@@ -65,7 +65,7 @@ class GPCamera : public Nan::ObjectWrap {
     GPCamera *cameraObject;
     CameraFile *file;
     GPContext *context;
-    const char *data;
+    char *data;
     unsigned long length; // NOLINT: Use int16/int64/etc, rather than the C type long
     int ret;
     bool download;

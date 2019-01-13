@@ -59,33 +59,33 @@ NAN_METHOD(GPCamera::TakePicture) {
     picture_req->preview = false;
     picture_req->cb.Reset(cb);
 
-    v8::Local<v8::Value> targVal = options->Get(Nan::New("targetPath").ToLocalChecked());
-    if (targVal->IsString()) {
-      Nan::Utf8String targetPath(targVal->ToString());
+    Nan::MaybeLocal<v8::String> targVal = MaybeGetLocal<v8::String>(options, "targetPath");
+    if (!targVal.IsEmpty()) {
+      Nan::Utf8String targetPath(targVal.ToLocalChecked());
       picture_req->target_path = std::string(*targetPath);
       picture_req->download = true;
     }
 
-    v8::Local<v8::Value> sktVal = options->Get(Nan::New("socket").ToLocalChecked());
-    if (sktVal->IsString()) {
-      Nan::Utf8String socketPath(sktVal->ToString());
+    Nan::MaybeLocal<v8::String> sktVal = MaybeGetLocal<v8::String>(options, "socket");
+    if (!sktVal.IsEmpty()) {
+      Nan::Utf8String socketPath(sktVal.ToLocalChecked());
       picture_req->socket_path = std::string(*socketPath);
       picture_req->download = true;
     }
 
-    v8::Local<v8::Value> dlVal = options->Get(Nan::New("download").ToLocalChecked());
-    if (dlVal->IsBoolean()) {
-      picture_req->download = dlVal->ToBoolean()->Value();
+    Nan::Maybe<bool> dlVal = MaybeGetValue<bool>(options, "download");
+    if (!dlVal.IsNothing()) {
+      picture_req->download = dlVal.FromJust();
     }
 
-    v8::Local<v8::Value> preVal = options->Get(Nan::New("preview").ToLocalChecked());
-    if (preVal->IsBoolean()) {
-      picture_req->preview = preVal->ToBoolean()->Value();
+    Nan::Maybe<bool> preVal = MaybeGetValue<bool>(options, "preview");
+    if (!preVal.IsNothing()) {
+      picture_req->preview = preVal.FromJust();
     }
 
-    v8::Local<v8::Value> keepVal = options->Get(Nan::New("keep").ToLocalChecked());
-    if (keepVal->IsBoolean()) {
-      picture_req->keep = keepVal->ToBoolean()->Value();
+    Nan::Maybe<bool> keepVal = MaybeGetValue<bool>(options, "keep");
+    if (!keepVal.IsNothing()) {
+      picture_req->keep = keepVal.FromJust();
     }
   } else {
     REQ_FUN_ARG(0, cb);
@@ -116,6 +116,10 @@ void GPCamera::Async_Capture(uv_work_t *_req) {
   req->cameraObject->unlock();
 }
 
+static void DeleteArray(char *data, void *hint) {
+  delete [] data;
+}
+
 void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
   Nan::HandleScope scope;
   take_picture_request *capture_req = static_cast<take_picture_request *>(req->data);
@@ -131,27 +135,17 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
     argv[1] = Nan::New(capture_req->target_path).ToLocalChecked();
   } else if (capture_req->data && capture_req->download) {
     argc = 2;
-    v8::Local<v8::Object> globalObj = Nan::GetCurrentContext()->Global();
-    v8::Local<v8::Function> bufferConstructor =
-      v8::Local<v8::Function>::Cast(globalObj->Get(Nan::New("Buffer").ToLocalChecked()));
-    v8::Local<v8::Value> constructorArgs[1];
-    if (capture_req->length > 0) {
-      constructorArgs[0] = Nan::New((unsigned int)capture_req->length);
-    } else {
-      constructorArgs[0] = Nan::New(0);
-    }
-    v8::Local<v8::Object> buffer = Nan::NewInstance(bufferConstructor, 1, constructorArgs).ToLocalChecked();
     if (capture_req->length) {
-      memmove(node::Buffer::Data(buffer), capture_req->data, capture_req->length);
-      delete capture_req->data;
+      argv[1] = Nan::NewBuffer(capture_req->data, capture_req->length, DeleteArray, nullptr).ToLocalChecked();
+    } else {
+      argv[1] = Nan::NewBuffer(0).ToLocalChecked();
     }
-    argv[1] = buffer;
   } else {
     argc = 2;
     argv[1] = Nan::New(capture_req->path).ToLocalChecked();
   }
 
-  capture_req->cb.Call(argc, argv);
+  Nan::Call(capture_req->cb, argc, argv);
 
   if (capture_req->ret == GP_OK && capture_req->file != NULL) {
     gp_file_free(capture_req->file);
@@ -276,7 +270,7 @@ void GPCamera::Async_GetConfigCb(uv_work_t *req, int status) {
     argv[1] = Nan::Undefined();
   }
 
-  config_req->cb.Call(2, argv);
+  Nan::Call(config_req->cb, 2, argv);
   gp_widget_free(config_req->root);
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);
@@ -346,7 +340,7 @@ void GPCamera::Async_SetConfigValueCb(uv_work_t *req, int status) {
     argc = 1;
   }
 
-  config_req->cb.Call(argc, argv);
+  Nan::Call(config_req->cb, argc, argv);
 
   config_req->cameraObject->Unref();
   gp_context_unref(config_req->context);

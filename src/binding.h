@@ -64,13 +64,41 @@ extern "C" {
   if (info.Length() <= (I) || !info[I]->IsString()) {       \
     return Nan::ThrowTypeError("Argument " #I " must be a string");   \
   }                                                         \
-  v8::String::Utf8Value VAR(info[I]->ToString());
+  Nan::Utf8String VAR(info[I]);
 
 #define REQ_INT_ARG(I, VAR)                                 \
   if (info.Length() <= (I) || !info[I]->IsInt32()) {        \
     return Nan::ThrowTypeError("Argument " #I " must be an integer"); \
   }                                                         \
-  int VAR = info[I]->Int32Value();
+  int32_t VAR = Nan::To<int32_t>(info[I]).FromJust();
+
+template<typename T>
+bool HasType(const v8::Value* val, const T* unused);
+
+// Convenience wrappers for getting a typed member from an object.
+template<typename T>
+Nan::MaybeLocal<T> MaybeGetLocal(const v8::Local<v8::Object> obj, const char* key) {
+  Nan::MaybeLocal<v8::Value> maybe = Nan::Get(obj, Nan::New(key).ToLocalChecked());
+  if (!maybe.IsEmpty()) {
+    v8::Local<v8::Value> val = maybe.ToLocalChecked();
+    if (HasType<T>(*val, nullptr)) {
+      return Nan::To<T>(val);
+    }
+  }
+  return Nan::MaybeLocal<T>();
+}
+
+template<typename T>
+Nan::Maybe<T> MaybeGetValue(const v8::Local<v8::Object> obj, const char* key) {
+  Nan::MaybeLocal<v8::Value> maybe = Nan::Get(obj, Nan::New(key).ToLocalChecked());
+  if (!maybe.IsEmpty()) {
+    v8::Local<v8::Value> val = maybe.ToLocalChecked();
+    if (HasType<T>(*val, nullptr)) {
+      return Nan::To<T>(val);
+    }
+  }
+  return Nan::Nothing<T>();
+}
 
 // Useful functions taken from library examples, with slight modifications
 int open_camera(Camera **camera, std::string model, std::string port,

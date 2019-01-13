@@ -94,13 +94,14 @@ NAN_METHOD(GPhoto2::SetLogLevel) {
     gp_log_remove_func(gphoto->logFuncId);
   }
 
-  if (info[0]->IsUndefined() || info[0]->Int32Value() < 0) {
+  Nan::Maybe<int32_t> level = Nan::To<int32_t>(info[0]);
+  if (level.IsNothing() || level.FromJust() < 0) {
     gphoto->logFuncId = 0;
     gphoto->logLevel = -1;
     return info.GetReturnValue().SetUndefined();
   }
 
-  gphoto->logLevel = (GPLogLevel) info[0]->Int32Value();
+  gphoto->logLevel = (GPLogLevel) level.FromJust();
 
   gp_log_add_func((GPLogLevel)gphoto->logLevel,
                   (GPLogFunc) GPhoto2::LogHandler,
@@ -144,7 +145,7 @@ NAUV_WORK_CB(GPhoto2::Async_LogCallback) {
       Nan::New(message->domain.c_str()).ToLocalChecked(),
       Nan::New(message->message.c_str()).ToLocalChecked()
     };
-    gphoto->emitFuncCb->Call(gphoto->handle(), 4, args);
+    Nan::Call(*gphoto->emitFuncCb, gphoto->handle(), 4, args);
     delete message;
   }
 
@@ -203,7 +204,7 @@ void GPhoto2::Async_ListCb(uv_work_t *req, int status) {
     }
   }
 
-  list_req->cb.Call(1, argv);
+  Nan::Call(list_req->cb, 1, argv);
 
 finally:
   gp_context_unref(list_req->context);
