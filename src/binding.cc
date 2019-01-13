@@ -11,3 +11,13 @@ extern "C" {
   }
   NODE_MODULE(gphoto2, init)
 }
+
+template<>
+bool HasType(const v8::Value* val, const v8::String* unused) {
+  return val->IsString();
+}
+
+template<>
+bool HasType(const v8::Value* val, const bool* unused) {
+  return val->IsBoolean();
+}
