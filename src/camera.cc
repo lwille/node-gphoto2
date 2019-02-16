@@ -129,7 +129,7 @@ void GPCamera::Async_CaptureCb(uv_work_t *req, int status) {
   } else if (capture_req->download && !capture_req->target_path.empty()) {
     argc = 2;
     argv[1] = Nan::New(capture_req->target_path).ToLocalChecked();
-  } else if (capture_req->data && capture_req->download) {
+  } else if (capture_req->data && (capture_req->download || capture_req->preview)) {
     argc = 2;
     v8::Local<v8::Object> globalObj = Nan::GetCurrentContext()->Global();
     v8::Local<v8::Function> bufferConstructor =
