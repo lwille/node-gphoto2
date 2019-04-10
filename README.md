@@ -139,3 +139,4 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 * [Philipp Trenz](https://github.com/philipptrenz)
 * [Tim Hunt](https://github.com/mitnuh)
 * [Sijawusz Pur Rahnama](https://github.com/sija)
+* [Brian McBarron](https://github.com/bmcbarron)
