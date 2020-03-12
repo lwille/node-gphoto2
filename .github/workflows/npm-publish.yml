@@ -3,15 +3,17 @@ on:
   push:
     branches:
       - master
+    paths:
+      - package.json
 jobs:
   npm-publish:
     name: npm-publish
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
-      uses: actions/checkout@master
+      uses: actions/checkout@v2
     - name: Set up Node.js
-      uses: actions/setup-node@master
+      uses: actions/setup-node@v1.4.0
       with:
         node-version: 10.0.0
     - name: Publish if version has been updated
