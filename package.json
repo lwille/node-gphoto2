@@ -39,7 +39,7 @@
   "scripts": {
     "cpplint": "util/cpplint.sh",
     "prepare": "npm run cpplint",
-    "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && (dpkg -s libgphoto2-dev || dpkg -s libgphoto2-6-dev)) || (which brew && ( brew list libgphoto2 || brew install libgphoto2 ) ) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1))",
+    "preinstall": "((which pkg-config && pkg-config libgphoto2) || (which dpkg && (dpkg -s libgphoto2-dev || dpkg -s libgphoto2-6-dev)) || (which brew && brew list libgphoto2) || (echo 'ERROR: libgphoto2 seems not to be installed.' 1>&2; exit 1))",
     "install": "node-gyp rebuild",
     "test": "mocha"
   },
