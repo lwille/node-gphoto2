@@ -21,15 +21,16 @@ int autodetect(CameraList *list, GPContext *context,
   CameraList *xlist = NULL;
   ret = gp_list_new(&xlist);
   if (ret < GP_OK) goto out;
-  if (!*portinfolist) {
-    /* Load all the port drivers we have... */
-    ret = gp_port_info_list_new(portinfolist);
-    if (ret < GP_OK) goto out;
-    ret = gp_port_info_list_load(*portinfolist);
-    if (ret < 0) goto out;
-    ret = gp_port_info_list_count(*portinfolist);
-    if (ret < 0) goto out;
+  if (*portinfolist) {
+    gp_port_info_list_free(*portinfolist);
   }
+  /* Load all the port drivers we have... */
+  ret = gp_port_info_list_new(portinfolist);
+  if (ret < GP_OK) goto out;
+  ret = gp_port_info_list_load(*portinfolist);
+  if (ret < 0) goto out;
+  ret = gp_port_info_list_count(*portinfolist);
+  if (ret < 0) goto out;
 
   /* Load all the camera drivers we have... */
   ret = gp_abilities_list_new(abilities);
