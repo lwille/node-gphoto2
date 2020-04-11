@@ -40,7 +40,7 @@ NAN_MODULE_INIT(GPCamera::Initialize) {
   Nan::SetPrototypeMethod(tpl, "takePicture", TakePicture);
   Nan::SetPrototypeMethod(tpl, "downloadPicture", DownloadPicture);
 
-  constructor.Reset(tpl->GetFunction());
+  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
   Nan::Set(target, Nan::New("Camera").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
@@ -170,8 +170,8 @@ NAN_METHOD(GPCamera::DownloadPicture) {
   gp_context_ref(picture_req->context);
   picture_req->download = true;
 
-  v8::Local<v8::Value> source = options->Get(Nan::New("cameraPath").ToLocalChecked());
-  v8::Local<v8::Value> target = options->Get(Nan::New("targetPath").ToLocalChecked());
+  v8::Local<v8::Value> source = Nan::Get(options, Nan::New("cameraPath").ToLocalChecked()).ToLocalChecked();
+  v8::Local<v8::Value> target = Nan::Get(options, Nan::New("targetPath").ToLocalChecked()).ToLocalChecked();
   if (target->IsString()) {
     picture_req->target_path = std::string(*Nan::Utf8String(target));
   }
@@ -357,8 +357,8 @@ NAN_METHOD(GPCamera::New) {
   GPCamera *camera = new GPCamera(js_gphoto, (std::string) *model_, (std::string) *port_);
 
   camera->Wrap(info.This());
-  info.This()->Set(Nan::New("model").ToLocalChecked(), Nan::New(camera->model_.c_str()).ToLocalChecked());
-  info.This()->Set(Nan::New("port").ToLocalChecked(), Nan::New(camera->port_.c_str()).ToLocalChecked());
+  Nan::Set(info.This(), Nan::New("model").ToLocalChecked(), Nan::New(camera->model_.c_str()).ToLocalChecked());
+  Nan::Set(info.This(), Nan::New("port").ToLocalChecked(), Nan::New(camera->port_.c_str()).ToLocalChecked());
   info.GetReturnValue().Set(info.This());
 }
 
