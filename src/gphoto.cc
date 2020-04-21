@@ -52,7 +52,7 @@ NAN_MODULE_INIT(GPhoto2::Initialize) {
   Nan::SetPrototypeMethod(tpl, "list", List);
   Nan::SetPrototypeMethod(tpl, "setLogLevel", SetLogLevel);
 
-  constructor.Reset(tpl->GetFunction());
+  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
 
   Nan::Set(target, Nan::New("GPhoto2").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
@@ -197,8 +197,8 @@ void GPhoto2::Async_ListCb(uv_work_t *req, int status) {
     // call the _javascript_ constructor to create a new Camera object
     v8::Local<v8::Object> js_camera = Nan::NewInstance(Nan::New(GPCamera::constructor), 3, _argv).ToLocalChecked();
 
-    js_camera->Set(Nan::New("_gphoto2_ref_obj_").ToLocalChecked(), Nan::New(list_req->This));
-    result->Set(Nan::New(i), js_camera);
+    Nan::Set(js_camera, Nan::New("_gphoto2_ref_obj_").ToLocalChecked(), Nan::New(list_req->This));
+    Nan::Set(result, Nan::New(i), js_camera);
     if (try_catch.HasCaught()) {
       goto finally;
     }

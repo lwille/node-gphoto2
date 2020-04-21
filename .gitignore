@@ -8,3 +8,4 @@ npm-debug.log
 .idea
 yarn-error.log
 .npmrc
+.vscode/

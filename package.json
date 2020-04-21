@@ -19,7 +19,7 @@
   ],
   "main": "index.js",
   "dependencies": {
-    "nan": "^2.11.1"
+    "nan": "^2.14.0"
   },
   "devDependencies": {
     "async": "^2.6.1",

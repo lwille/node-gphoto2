@@ -5,9 +5,9 @@ script:
 - npm run cpplint
 language: node_js
 node_js:
+- lts/erbium
 - lts/dubnium
-- '0.12'
-- '0.10'
+- 13  
 env:
 - CXX=g++-4.8
 dist: trusty

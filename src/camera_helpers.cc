@@ -62,16 +62,16 @@ v8::Local<v8::Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *
   ret = gp_widget_get_label(widget, &label);
   if (ret != GP_OK) return Nan::Undefined();
 
-  value->Set(Nan::New("label").ToLocalChecked(), Nan::New(label).ToLocalChecked());
-  value->Set(Nan::New("type").ToLocalChecked(), Nan::Undefined());
+  Nan::Set(value, Nan::New("label").ToLocalChecked(), Nan::New(label).ToLocalChecked());
+  Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::Undefined());
 
   switch (type) {
   case GP_WIDGET_TEXT: { /* char * */
     char *txt;
     ret = gp_widget_get_value(widget, &txt);
     if (ret == GP_OK) {
-      value->Set(Nan::New("type").ToLocalChecked(), Nan::New("string").ToLocalChecked());
-      value->Set(Nan::New("value").ToLocalChecked(), Nan::New(txt).ToLocalChecked());
+      Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("string").ToLocalChecked());
+      Nan::Set(value, Nan::New("value").ToLocalChecked(), Nan::New(txt).ToLocalChecked());
     } else {
       gp_context_error(context,
                        "Failed to retrieve value of text widget %s.",
@@ -85,11 +85,11 @@ v8::Local<v8::Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *
     ret = gp_widget_get_range(widget, &min, &max, &step);
     if (ret == GP_OK) {
       ret = gp_widget_get_value(widget, &f);
-      value->Set(Nan::New("type").ToLocalChecked(), Nan::New("range").ToLocalChecked());
-      value->Set(Nan::New("value").ToLocalChecked(), Nan::New(f));
-      value->Set(Nan::New("max").ToLocalChecked(), Nan::New(max));
-      value->Set(Nan::New("min").ToLocalChecked(), Nan::New(min));
-      value->Set(Nan::New("step").ToLocalChecked(), Nan::New(step));
+      Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("range").ToLocalChecked());
+      Nan::Set(value, Nan::New("value").ToLocalChecked(), Nan::New(f));
+      Nan::Set(value, Nan::New("max").ToLocalChecked(), Nan::New(max));
+      Nan::Set(value, Nan::New("min").ToLocalChecked(), Nan::New(min));
+      Nan::Set(value, Nan::New("step").ToLocalChecked(), Nan::New(step));
     } else {
       gp_context_error(context,
                        "Failed to retrieve values of range widget %s.",
@@ -101,8 +101,8 @@ v8::Local<v8::Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *
     int t;
     ret = gp_widget_get_value(widget, &t);
     if (ret == GP_OK) {
-      value->Set(Nan::New("type").ToLocalChecked(), Nan::New("toggle").ToLocalChecked());
-      value->Set(Nan::New("value").ToLocalChecked(), Nan::New(t));
+      Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("toggle").ToLocalChecked());
+      Nan::Set(value, Nan::New("value").ToLocalChecked(), Nan::New(t));
     } else {
       gp_context_error(context,
                        "Failed to retrieve values of toggle widget %s.",
@@ -119,8 +119,8 @@ v8::Local<v8::Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *
                        label);
       break;
     }
-    value->Set(Nan::New("type").ToLocalChecked(), Nan::New("date").ToLocalChecked());
-    value->Set(Nan::New("value").ToLocalChecked(), Nan::New<v8::Date>(t * 1000.0).ToLocalChecked());
+    Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("date").ToLocalChecked());
+    Nan::Set(value, Nan::New("value").ToLocalChecked(), Nan::New<v8::Date>(t * 1000.0).ToLocalChecked());
     break;
   }
   case GP_WIDGET_MENU:
@@ -142,25 +142,25 @@ v8::Local<v8::Value> GPCamera::getWidgetValue(GPContext *context, CameraWidget *
 
       ret = gp_widget_get_choice(widget, i, &choice);
       if (ret != GP_OK) continue;
-      choices->Set(Nan::New(i), Nan::New(choice).ToLocalChecked());
+      Nan::Set(choices, Nan::New(i), Nan::New(choice).ToLocalChecked());
     }
 
-    value->Set(Nan::New("type").ToLocalChecked(), Nan::New("choice").ToLocalChecked());
-    value->Set(Nan::New("value").ToLocalChecked(), Nan::New(current).ToLocalChecked());
-    value->Set(Nan::New("choices").ToLocalChecked(), choices);
+    Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("choice").ToLocalChecked());
+    Nan::Set(value, Nan::New("value").ToLocalChecked(), Nan::New(current).ToLocalChecked());
+    Nan::Set(value, Nan::New("choices").ToLocalChecked(), choices);
     break;
   }
   /* ignore: */
   case GP_WIDGET_WINDOW: {
-    value->Set(Nan::New("type").ToLocalChecked(), Nan::New("window").ToLocalChecked());
+    Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("window").ToLocalChecked());
     break;
   }
   case GP_WIDGET_SECTION: {
-    value->Set(Nan::New("type").ToLocalChecked(), Nan::New("section").ToLocalChecked());
+    Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("section").ToLocalChecked());
     break;
   }
   case GP_WIDGET_BUTTON: {
-    value->Set(Nan::New("type").ToLocalChecked(), Nan::New("button").ToLocalChecked());
+    Nan::Set(value, Nan::New("type").ToLocalChecked(), Nan::New("button").ToLocalChecked());
   }
   }
   return scope.Escape(value);
