@@ -1,0 +1,6 @@
+---
+  dataSource: prs-with-issues 
+  prefix: v
+  onlyMilestones: false
+  groupBy: false
+  changelogFilename: CHANGELOG.md
