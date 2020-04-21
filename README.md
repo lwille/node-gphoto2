@@ -17,9 +17,7 @@ The test suite can be run using `npm test`. There's also a small test applicatio
 
 ## Prerequisites
 
-* Node.js: any version supported by [nodejs/nan](https://github.com/nodejs/nan)
-* NPM: ~5.6.0
-* Nan: ~2.8.0
+* Node.js: versions 10 (LTS), 12 (LTS), 13 (current)
 * libgphoto2: ~2.5.x - via `brew install libgphoto2`, `apt-get install libgphoto2-dev` or download and build from http://www.gphoto.org/proj/libgphoto2/
 * pkg-config | dpkg (used for dependency checking)
 * clang compiler
@@ -131,12 +129,14 @@ This project uses [Semantic versioning](https://github.com/mojombo/semver).
 
 ## Contributors
 
+* [Brian McBarron](https://github.com/bmcbarron)
 * [Brian White](https://github.com/mscdex)
 * [David Noelte](https://github.com/marvin)
 * [Leonhardt Wille](https://github.com/lwille)
 * [Luigi Pinca](https://github.com/lpinca)
 * [Michael Kötter](https://github.com/michaelkoetter)
+* [Pawel Rupek](https://github.com/pawelrupek)
 * [Philipp Trenz](https://github.com/philipptrenz)
 * [Tim Hunt](https://github.com/mitnuh)
 * [Sijawusz Pur Rahnama](https://github.com/sija)
-* [Brian McBarron](https://github.com/bmcbarron)
+* [wolfg](https://github.com/wolfg1969)
