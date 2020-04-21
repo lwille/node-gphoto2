@@ -5,6 +5,7 @@ script:
 - npm run cpplint
 language: node_js
 node_js:
+- lts/erbium
 - lts/dubnium
 - '0.12'
 - '0.10'
